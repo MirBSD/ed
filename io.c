@@ -1,3 +1,4 @@
+/**	$MirOS: src/bin/ed/io.c,v 1.2 2005/03/06 18:55:19 tg Exp $ */
 /*	$OpenBSD: io.c,v 1.11 2003/06/11 23:42:12 deraadt Exp $	*/
 /*	$NetBSD: io.c,v 1.2 1995/03/21 09:04:43 cgd Exp $	*/
 
@@ -28,16 +29,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-#if 0
-static char *rcsid = "@(#)io.c,v 1.1 1994/02/01 00:34:41 alm Exp";
-#else
-static char rcsid[] = "$OpenBSD: io.c,v 1.11 2003/06/11 23:42:12 deraadt Exp $";
-#endif
-#endif /* not lint */
-
 #include "ed.h"
 
+__SCCSID("@(#)io.c,v 1.1 1994/02/01 00:34:41 alm Exp");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.2 2005/03/06 18:55:19 tg Exp $");
 
 extern int scripted;
 
@@ -61,7 +56,7 @@ read_file(char *fn, int n)
 		seterrmsg("cannot close input file");
 		return ERR;
 	}
-	fprintf(stderr, !scripted ? "%lu\n" : "", size);
+	fprintf(stderr, !scripted ? "%lu\n" : "", (long)size);
 	return current_addr - n;
 }
 
@@ -169,7 +164,7 @@ write_file(char *fn, char *mode, int n, int m)
 		seterrmsg("cannot close output file");
 		return ERR;
 	}
-	fprintf(stderr, !scripted ? "%lu\n" : "", size);
+	fprintf(stderr, !scripted ? "%lu\n" : "", (long)size);
 	return n ? m - n + 1 : 0;
 }
 
