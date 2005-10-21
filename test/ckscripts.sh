@@ -1,4 +1,4 @@
-#!/bin/sh -
+#!/bin/mksh
 #	$OpenBSD: ckscripts.sh,v 1.3 1998/07/12 03:49:08 todd Exp $
 #	$NetBSD: ckscripts.sh,v 1.9 1995/04/23 10:07:34 cgd Exp $
 #

@@ -1,4 +1,4 @@
-#!/bin/sh -
+#!/bin/mksh
 #	$OpenBSD: mkscripts.sh,v 1.2 1996/06/23 14:20:08 deraadt Exp $
 #	$NetBSD: mkscripts.sh,v 1.10 1995/04/23 10:07:36 cgd Exp $
 #
@@ -13,7 +13,7 @@ for i in *.t; do
 #	base=`echo $i | sed 's/\..*//'`
 #	base=`expr $i : '\([^.]*\)'`
 #	(
-#	echo "#!/bin/sh -"
+#	echo "#!/bin/mksh"
 #	echo "$ED - <<\EOT"
 #	echo "r $base.d"
 #	cat $i
@@ -28,7 +28,7 @@ for i in *.t; do
 	EOF`
 	$ED - <<-EOF
 		a
-		#!/bin/sh -
+		#!/bin/mksh
 		$ED - <<\EOT
 		H
 		r $base.d
@@ -46,7 +46,7 @@ for i in *.err; do
 #	base=`echo $i | sed 's/\..*//'`
 #	base=`expr $i : '\([^.]*\)'`
 #	(
-#	echo "#!/bin/sh -"
+#	echo "#!/bin/mksh"
 #	echo "$ED - <<\EOT"
 #	echo H
 #	echo "r $base.err"
@@ -62,7 +62,7 @@ for i in *.err; do
 	EOF`
 	$ED - <<-EOF
 		a
-		#!/bin/sh -
+		#!/bin/mksh
 		$ED - <<\EOT
 		H
 		r $base.err
