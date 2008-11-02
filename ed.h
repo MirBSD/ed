@@ -35,7 +35,8 @@
 # include <sys/param.h>		/* for MAXPATHLEN */
 #endif
 #include <errno.h>
-#if defined(sun) || defined(__NetBSD__) || defined(__OpenBSD__)
+#if defined(sun) || defined(__NetBSD__) || defined(__OpenBSD__) || \
+    defined(__EXT_QNX)
 # include <limits.h>
 #endif
 #include <regex.h>
