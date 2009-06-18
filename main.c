@@ -29,20 +29,6 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-char *copyright =
-"@(#) Copyright (c) 1993 Andrew Moore, Talke Studio. \n\
- All rights reserved.\n";
-#endif /* not lint */
-
-#ifndef lint
-#if 0
-static char *rcsid = "@(#)main.c,v 1.1 1994/02/01 00:34:42 alm Exp";
-#else
-static char rcsid[] = "$OpenBSD: main.c,v 1.28 2003/06/11 23:42:12 deraadt Exp $";
-#endif
-#endif /* not lint */
-
 /*
  * CREDITS
  *
@@ -68,6 +54,12 @@ static char rcsid[] = "$OpenBSD: main.c,v 1.28 2003/06/11 23:42:12 deraadt Exp $
 #include <pwd.h>
 
 #include "ed.h"
+
+__COPYRIGHT("@(#) Copyright (c) 1993 Andrew Moore, Talke Studio. \n\
+ All rights reserved.\n");
+
+__SCCSID("@(#)main.c,v 1.1 1994/02/01 00:34:42 alm Exp");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.2 2009/06/18 20:45:51 tg Exp $");
 
 
 #ifdef _POSIX_SOURCE
@@ -301,7 +293,7 @@ extract_addr_range(void)
 		else if (*ibufp++ == ';')
 			current_addr = addr;
 	}
-	if ((addr_cnt = min(addr_cnt, 2)) == 1 || second_addr != addr)
+	if ((addr_cnt = MIN(addr_cnt, 2)) == 1 || second_addr != addr)
 		first_addr = second_addr;
 	return (addr == ERR) ? ERR : 0;
 }
@@ -320,7 +312,7 @@ extract_addr_range(void)
 			return ERR; \
 		} \
 	} while (0)
-	
+
 
 /*  next_addr: return the next line address in the command buffer */
 int
@@ -888,7 +880,7 @@ exec_command(void)
 		else if ('0' < *ibufp && *ibufp <= '9')
 			STRTOI(rows, ibufp);
 		GET_COMMAND_SUFFIX();
-		if (display_lines(second_addr, min(addr_last,
+		if (display_lines(second_addr, MIN(addr_last,
 		    second_addr + rows), gflag) < 0)
 			return ERR;
 		gflag = 0;

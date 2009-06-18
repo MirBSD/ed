@@ -1,3 +1,4 @@
+/**	$MirOS: src/bin/ed/ed.h,v 1.3 2009/06/18 20:45:51 tg Exp $ */
 /*	$OpenBSD: ed.h,v 1.10 2002/03/24 22:17:04 millert Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -31,7 +32,7 @@
  */
 
 #include <sys/types.h>
-#if defined(BSD) && BSD >= 199103 || defined(__386BSD__)
+#ifndef NO_SYS_PARAM_H
 # include <sys/param.h>		/* for MAXPATHLEN */
 #endif
 #include <errno.h>
@@ -93,11 +94,11 @@ typedef struct undo {
 	line_t  *t;			/* tail of list */
 } undo_t;
 
-#ifndef max
-# define max(a,b) ((a) > (b) ? (a) : (b))
+#ifndef MAX
+# define MAX(a,b) ((a) > (b) ? (a) : (b))
 #endif
-#ifndef min
-# define min(a,b) ((a) < (b) ? (a) : (b))
+#ifndef MIN
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
 #define INC_MOD(l, k)	((l) + 1 > (k) ? 0 : (l) + 1)
@@ -132,14 +133,14 @@ if ((i) > (n)) { \
 	char *ts; \
 	SPL1(); \
 	if ((b) != NULL) { \
-		if ((ts = (char *) realloc((b), ti += max((i), MINBUFSZ))) == NULL) { \
+		if ((ts = (char *) realloc((b), ti += MAX((i), MINBUFSZ))) == NULL) { \
 			perror(NULL); \
 			seterrmsg("out of memory"); \
 			SPL0(); \
 			return err; \
 		} \
 	} else { \
-		if ((ts = (char *) malloc(ti += max((i), MINBUFSZ))) == NULL) { \
+		if ((ts = (char *) malloc(ti += MAX((i), MINBUFSZ))) == NULL) { \
 			perror(NULL); \
 			seterrmsg("out of memory"); \
 			SPL0(); \
@@ -157,7 +158,7 @@ if ((i) > (n)) { \
 	int ti = (n); \
 	char *ts; \
 	SPL1(); \
-	if ((ts = (char *) realloc((b), ti += max((i), MINBUFSZ))) == NULL) { \
+	if ((ts = (char *) realloc((b), ti += MAX((i), MINBUFSZ))) == NULL) { \
 		perror(NULL); \
 		seterrmsg("out of memory"); \
 		SPL0(); \
