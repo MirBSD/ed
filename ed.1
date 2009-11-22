@@ -1,4 +1,4 @@
-.\"	$MirOS: src/bin/ed/ed.1,v 1.3 2005/10/21 11:02:32 tg Exp $
+.\"	$MirOS: src/bin/ed/ed.1,v 1.4 2009/11/22 18:23:37 tg Exp $
 .\"	$OpenBSD: ed.1,v 1.49 2004/10/04 21:24:54 jmc Exp $
 .\"
 .\" Copyright (c) 1993 Andrew Moore, Talke Studio.
@@ -24,8 +24,133 @@
 .\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
+.\"-
+.\" Copyright (c) 2008, 2009
+.\"	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
+.\"-
+.\" Try to make GNU groff and AT&T nroff more compatible
+.\" * ` generates ‘ in gnroff, so use \`
+.\" * ' generates ’ in gnroff, \' generates ´, so use \*(aq
+.\" * - generates ‐ in gnroff, \- generates −, so .tr it to -
+.\"   thus use - for hyphens and \- for minus signs and option dashes
+.\" * ~ is size-reduced and placed atop in groff, so use \*(TI
+.\" * ^ is size-reduced and placed atop in groff, so use \*(ha
+.\" * \(en does not work in nroff, so use \*(en
+.\" The section after the "doc" macropackage has been loaded contains
+.\" additional code to convene between the UCB mdoc macropackage (and
+.\" its variant as BSD mdoc in groff) and the GNU mdoc macropackage.
 .\"
-.Dd May 2, 1993
+.ie \n(.g \{\
+.	if \*[.T]ascii .tr \-\N'45'
+.	if \*[.T]latin1 .tr \-\N'45'
+.	if \*[.T]utf8 .tr \-\N'45'
+.	ds <= \[<=]
+.	ds >= \[>=]
+.	ds Rq \[rq]
+.	ds Lq \[lq]
+.	ds sL \(aq
+.	ds sR \(aq
+.	if \*[.T]utf8 .ds sL `
+.	if \*[.T]ps .ds sL `
+.	if \*[.T]utf8 .ds sR '
+.	if \*[.T]ps .ds sR '
+.	ds aq \(aq
+.	ds TI \(ti
+.	ds ha \(ha
+.	ds en \(en
+.\}
+.el \{\
+.	ds aq '
+.	ds TI ~
+.	ds ha ^
+.	ds en \(em
+.\}
+.\"
+.\" Implement .Dd with the Mdocdate RCS keyword
+.\"
+.rn Dd xD
+.de Dd
+.ie \\$1$Mdocdate: \{\
+.	xD \\$2 \\$3, \\$4
+.\}
+.el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
+..
+.\"
+.\" .Dd must come before definition of .Mx, because when called
+.\" with -mandoc, it might implement .Mx itself, but we want to
+.\" use our own definition. And .Dd must come *first*, always.
+.\"
+.Dd $Mdocdate: November 22 2009 $
+.\"
+.\" Check which macro package we use
+.\"
+.ie \n(.g \{\
+.	ie d volume-ds-1 .ds tT gnu
+.	el .ds tT bsd
+.\}
+.el .ds tT ucb
+.\"
+.\" Implement .Mx (MirBSD)
+.\"
+.ie "\*(tT"gnu" \{\
+.	eo
+.	de Mx
+.	nr curr-font \n[.f]
+.	nr curr-size \n[.ps]
+.	ds str-Mx \f[\n[curr-font]]\s[\n[curr-size]u]
+.	ds str-Mx1 \*[Tn-font-size]\%MirOS\*[str-Mx]
+.	if !\n[arg-limit] \
+.	if \n[.$] \{\
+.	ds macro-name Mx
+.	parse-args \$@
+.	\}
+.	if (\n[arg-limit] > \n[arg-ptr]) \{\
+.	nr arg-ptr +1
+.	ie (\n[type\n[arg-ptr]] == 2) \
+.	as str-Mx1 \~\*[arg\n[arg-ptr]]
+.	el \
+.	nr arg-ptr -1
+.	\}
+.	ds arg\n[arg-ptr] "\*[str-Mx1]
+.	nr type\n[arg-ptr] 2
+.	ds space\n[arg-ptr] "\*[space]
+.	nr num-args (\n[arg-limit] - \n[arg-ptr])
+.	nr arg-limit \n[arg-ptr]
+.	if \n[num-args] \
+.	parse-space-vector
+.	print-recursive
+..
+.	ec
+.	ds sP \s0
+.	ds tN \*[Tn-font-size]
+.\}
+.el \{\
+.	de Mx
+.	nr cF \\n(.f
+.	nr cZ \\n(.s
+.	ds aa \&\f\\n(cF\s\\n(cZ
+.	if \\n(aC==0 \{\
+.		ie \\n(.$==0 \&MirOS\\*(aa
+.		el .aV \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8 \\$9
+.	\}
+.	if \\n(aC>\\n(aP \{\
+.		nr aP \\n(aP+1
+.		ie \\n(C\\n(aP==2 \{\
+.			as b1 \&MirOS\ #\&\\*(A\\n(aP\\*(aa
+.			ie \\n(aC>\\n(aP \{\
+.				nr aP \\n(aP+1
+.				nR
+.			\}
+.			el .aZ
+.		\}
+.		el \{\
+.			as b1 \&MirOS\\*(aa
+.			nR
+.		\}
+.	\}
+..
+.\}
+.\"-
 .Dt ED 1
 .Os
 .Sh NAME
@@ -185,9 +310,9 @@ constructed from one of the bases in the list below, optionally followed
 by a numeric offset.
 The offset may include any combination of digits, operators (e.g.,
 .Ql + ,
-.Ql - ,
+.Ql \- ,
 and
-.Ql ^ ) ,
+.Ql \*(ha ) ,
 and whitespace.
 Addresses are read from left to right, and their values are computed
 relative to the current address.
@@ -235,14 +360,14 @@ line in the buffer, where
 .Ar n
 is a number in the range
 .Ad [0,$] .
-.It - or ^
+.It \- or \*(ha
 The previous line.
 This is equivalent to
 .Ad \-1
 and may be repeated with cumulative effect.
 .It Xo
-.Pf - Ns Ar n No or\ \&
-.Pf ^ Ns Ar n
+.Pf \- Ns Ar n No or\ \&
+.Pf \*(ha Ns Ar n
 .Xc
 The
 .Ar n Ns th
@@ -282,7 +407,7 @@ The search wraps to the end of the buffer and continues up to the
 current line, if necessary.
 .Qq ??
 repeats the last search.
-.It \&' Ns Ar lc
+.It \*(aq Ns Ar lc
 The line previously marked by a
 .Ic k
 .Pq mark
@@ -310,7 +435,7 @@ or
 to print the last line affected by the command.
 .Pp
 An interrupt
-.Pq typically ^C
+.Pq typically \*(haC
 has the effect of aborting the current command
 and returning the editor to command mode.
 .Pp
@@ -444,7 +569,7 @@ The current address is set to the resultant line.
 Marks a line with a lower case letter
 .Ar lc .
 The line can then be addressed as
-.Ic ' Ns Ar lc
+.Ic \*(aq Ns Ar lc
 (i.e., a single quote followed by
 .Ar lc )
 in subsequent commands.
@@ -453,7 +578,7 @@ The mark is not cleared until the line is deleted or otherwise modified.
 Prints the addressed lines unambiguously.
 If a single line fills more than one screen (as might be the case
 when viewing a binary file, for instance), a
-.Dq --More--
+.Dq \-\-More\-\-
 prompt is printed on the last line.
 .Nm
 waits until the RETURN key is pressed before displaying the next screen.
