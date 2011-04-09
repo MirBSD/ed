@@ -1,5 +1,5 @@
-.\"	$MirOS: src/bin/ed/ed.1,v 1.4 2009/11/22 18:23:37 tg Exp $
-.\"	$OpenBSD: ed.1,v 1.49 2004/10/04 21:24:54 jmc Exp $
+.\"	$MirOS: src/bin/ed/ed.1,v 1.5 2011/04/09 16:28:48 tg Exp $
+.\"	$OpenBSD: ed.1,v 1.57 2010/09/03 09:53:20 jmc Exp $
 .\"
 .\" Copyright (c) 1993 Andrew Moore, Talke Studio.
 .\" All rights reserved.
@@ -25,7 +25,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"-
-.\" Copyright (c) 2008, 2009
+.\" Copyright (c) 2008, 2009, 2010
 .\"	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
 .\"-
 .\" Try to make GNU groff and AT&T nroff more compatible
@@ -36,6 +36,8 @@
 .\" * ~ is size-reduced and placed atop in groff, so use \*(TI
 .\" * ^ is size-reduced and placed atop in groff, so use \*(ha
 .\" * \(en does not work in nroff, so use \*(en
+.\" * <>| are problematic, so redefine and use \*(Lt\*(Gt\*(Ba
+.\" Also make sure to use \& especially with two-letter words.
 .\" The section after the "doc" macropackage has been loaded contains
 .\" additional code to convene between the UCB mdoc macropackage (and
 .\" its variant as BSD mdoc in groff) and the GNU mdoc macropackage.
@@ -80,11 +82,13 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: November 22 2009 $
+.Dd $Mdocdate: April 9 2011 $
 .\"
-.\" Check which macro package we use
+.\" Check which macro package we use, and do other -mdoc setup.
 .\"
 .ie \n(.g \{\
+.	if \*[.T]utf8 .tr \[la]\*(Lt
+.	if \*[.T]utf8 .tr \[ra]\*(Gt
 .	ie d volume-ds-1 .ds tT gnu
 .	el .ds tT bsd
 .\}
@@ -470,9 +474,9 @@ If
 is not specified, then the default filename is used.
 Any lines in the buffer are deleted before the new file is read.
 The current address is set to the last line read.
-.It Ic e No ! Ns Ar command
+.It Ic e No \&! Ns Ar command
 Edits the standard output of
-.No ! Ns Ar command ,
+.No \&! Ns Ar command ,
 (see
 .Ic \&! Ns Ar command
 below).
@@ -510,6 +514,8 @@ command-list is executed.
 At the end of the
 .Ic g
 command, the current address is set to the last line affected by command-list.
+If no lines were matched,
+the current line number remains unchanged.
 .Pp
 Each command in
 .Ar command-list
@@ -538,6 +544,8 @@ At the end of the
 command, the current address is set to the last line affected by
 .Pq the last
 command-list.
+If no lines were matched,
+the current line number remains unchanged.
 .Pp
 The format of
 .Ar command-list
@@ -623,9 +631,9 @@ then the default filename is set to
 .Ar file .
 Otherwise, the default filename is unchanged.
 The current address is set to the last line read.
-.It ($) Ns Ic r No ! Ns Ar command
+.It ($) Ns Ic r No \&! Ns Ar command
 Reads to after the addressed line the standard output of
-.Pf ! Ns Ar command ,
+.No \&! Ns Ar command ,
 (see
 .Ic \&! Ns Ar command
 below).
@@ -784,9 +792,9 @@ Writes the addressed lines to
 and then executes a
 .Ic q
 command.
-.It (1,$) Ns Ic w No ! Ns Ar command
+.It (1,$) Ns Ic w No \&! Ns Ar command
 Writes the addressed lines to the standard input of
-.Pf ! Ns Ar command ,
+.No \&! Ns Ar command ,
 (see
 .Ic \&! Ns Ar command
 below).
@@ -852,6 +860,8 @@ where
 .Nm
 attempts to write the buffer if the terminal hangs up
 .El
+.Sh EXIT STATUS
+.Ex -std ed
 .Sh DIAGNOSTICS
 When an error occurs,
 .Nm
@@ -906,6 +916,21 @@ but any changes to the buffer are lost.
 .%O Addison-Wesley
 .%D 1981
 .Re
+.Sh STANDARDS
+The
+.Nm
+utility is compliant with the
+.St -p1003.1-2008
+specification.
+.Pp
+The flag
+.Op Fl x
+as well as the commands
+.Cm W ,
+.Cm x ,
+and
+.Cm z
+are extensions to that specification.
 .Sh HISTORY
 An
 .Nm

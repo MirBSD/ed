@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.28 2003/06/11 23:42:12 deraadt Exp $	*/
+/*	$OpenBSD: main.c,v 1.34 2010/08/12 02:00:28 kevlo Exp $	*/
 /*	$NetBSD: main.c,v 1.3 1995/03/21 09:04:44 cgd Exp $	*/
 
 /* main.c: This file contains the main control and user-interface routines
@@ -55,12 +55,7 @@
 
 #include "ed.h"
 
-__COPYRIGHT("@(#) Copyright (c) 1993 Andrew Moore, Talke Studio. \n\
- All rights reserved.\n");
-
-__SCCSID("@(#)main.c,v 1.1 1994/02/01 00:34:42 alm Exp");
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.2 2009/06/18 20:45:51 tg Exp $");
-
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.3 2011/04/09 16:28:48 tg Exp $");
 
 #ifdef _POSIX_SOURCE
 sigjmp_buf env;
@@ -87,8 +82,10 @@ int mutex = 0;			/* if set, signals set "sigflags" */
 int red = 0;			/* if set, restrict shell/directory access */
 int scripted = 0;		/* if set, suppress diagnostics */
 int sigflags = 0;		/* if set, signals received while mutex set */
-int sigactive = 0;		/* if set, signal handlers are enabled */
 int interactive = 0;		/* if set, we are in interactive mode */
+
+/* if set, signal handlers are enabled */
+volatile sig_atomic_t sigactive = 0;
 
 char old_filename[MAXPATHLEN] = "";	/* default filename */
 int current_addr;		/* current address in editor buffer */
@@ -97,7 +94,7 @@ int lineno;			/* script line number */
 char *prompt;			/* command-line prompt */
 char *dps = "*";		/* default command-line prompt */
 
-char *usage = "usage: %s [-] [-sx] [-p string] [name]\n";
+char *usage = "usage: %s [-] [-sx] [-p string] [file]\n";
 
 char *home;		/* home directory */
 
@@ -154,8 +151,8 @@ top:
 		struct stat sb;
 
 		/* assert: pipes show up as fifo's when fstat'd */
-		if (fstat(0, &sb) || !S_ISFIFO(sb.st_mode)) {
-			if (lseek(0, 0, SEEK_CUR)) {
+		if (fstat(STDIN_FILENO, &sb) || !S_ISFIFO(sb.st_mode)) {
+			if (lseek(STDIN_FILENO, 0, SEEK_CUR)) {
 				interactive = 1;
 				setlinebuf(stdout);
 			}
@@ -312,7 +309,7 @@ extract_addr_range(void)
 			return ERR; \
 		} \
 	} while (0)
-
+	
 
 /*  next_addr: return the next line address in the command buffer */
 int
@@ -377,7 +374,7 @@ next_addr(void)
 				addr = addr_last;
 				break;
 			}
-			/* FALL THROUGH */
+			/* FALLTHROUGH */
 		default:
 			if (ibufp == hd)
 				return EOF;
@@ -523,7 +520,7 @@ exec_command(void)
 	case 'e':
 		if (modified && !scripted)
 			return EMOD;
-		/* fall through */
+		/* FALLTHROUGH */
 	case 'E':
 		if (addr_cnt > 0) {
 			seterrmsg("unexpected address");
@@ -1403,18 +1400,17 @@ signal_int(int signo)
 void
 handle_hup(int signo)
 {
-	char path[MAXPATHLEN];
-	char *hup = NULL;		/* hup filename */
+	char hup[MAXPATHLEN];
 
 	if (!sigactive)
 		quit(1);
 	sigflags &= ~(1 << (signo - 1));
+	/* XXX signal race */
 	if (addr_last && write_file("ed.hup", "w", 1, addr_last) < 0 &&
-	    home != NULL &&
-	    strlen(home) + sizeof("/ed.hup") <= MAXPATHLEN) {
-		strlcpy(path, home, sizeof(path));
-		strlcat(path, "/ed.hup", sizeof(path));
-		write_file(hup, "w", 1, addr_last);
+	    home != NULL && home[0] == '/') {
+		if (strlcpy(hup, home, sizeof(hup)) < sizeof(hup) &&
+		    strlcat(hup, "/ed.hup", sizeof(hup)) < sizeof(hup))
+			write_file(hup, "w", 1, addr_last);
 	}
 	_exit(2);
 }
@@ -1441,7 +1437,7 @@ handle_winch(int signo)
 	struct winsize ws;		/* window size structure */
 
 	sigflags &= ~(1 << (signo - 1));
-	if (ioctl(0, TIOCGWINSZ, (char *) &ws) >= 0) {
+	if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) >= 0) {
 		if (ws.ws_row > 2)
 			rows = ws.ws_row - 2;
 		if (ws.ws_col > 8)

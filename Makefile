@@ -1,5 +1,5 @@
-# $MirOS: src/bin/ed/Makefile,v 1.2 2005/03/15 18:58:31 tg Exp $
-# $OpenBSD: Makefile,v 1.8 2003/07/29 18:36:30 jmc Exp $
+# $MirOS: src/bin/ed/Makefile,v 1.3 2011/04/09 16:28:48 tg Exp $
+# $OpenBSD: Makefile,v 1.9 2010/01/04 17:50:37 deraadt Exp $
 
 PROG=		ed
 SRCS=		buf.c cbc.c glbl.c io.c main.c re.c sub.c undo.c

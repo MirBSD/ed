@@ -1,5 +1,5 @@
-/**	$MirOS: src/bin/ed/ed.h,v 1.3 2009/06/18 20:45:51 tg Exp $ */
-/*	$OpenBSD: ed.h,v 1.10 2002/03/24 22:17:04 millert Exp $	*/
+/**	$MirOS: src/bin/ed/ed.h,v 1.4 2011/04/09 16:28:48 tg Exp $ */
+/*	$OpenBSD: ed.h,v 1.11 2007/02/24 13:24:47 millert Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
 /* ed.h: type and constant definitions for the ed editor. */
@@ -216,7 +216,6 @@ int extract_addr_range(void);
 char *extract_pattern(int);
 int extract_subst_tail(int *, int *);
 char *extract_subst_template(void);
-int filter_lines(int, int, char *);
 int flush_des_file(FILE *);
 line_t *get_addressed_line_node(int);
 pattern_t *get_compiled_pattern(void);
