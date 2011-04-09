@@ -1,4 +1,4 @@
-/*	$OpenBSD: io.c,v 1.11 2003/06/11 23:42:12 deraadt Exp $	*/
+/*	$OpenBSD: io.c,v 1.15 2009/10/28 15:40:47 deraadt Exp $	*/
 /*	$NetBSD: io.c,v 1.2 1995/03/21 09:04:43 cgd Exp $	*/
 
 /* io.c: This file contains the i/o routines for the ed line editor */
@@ -28,14 +28,6 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-#if 0
-static char *rcsid = "@(#)io.c,v 1.1 1994/02/01 00:34:41 alm Exp";
-#else
-static char rcsid[] = "$OpenBSD: io.c,v 1.11 2003/06/11 23:42:12 deraadt Exp $";
-#endif
-#endif /* not lint */
-
 #include "ed.h"
 
 
@@ -61,7 +53,7 @@ read_file(char *fn, int n)
 		seterrmsg("cannot close input file");
 		return ERR;
 	}
-	fprintf(stderr, !scripted ? "%lu\n" : "", size);
+	fprintf(stderr, !scripted ? "%d\n" : "", size);
 	return current_addr - n;
 }
 
@@ -85,8 +77,10 @@ read_stream(FILE *fp, int n)
 	int len;
 
 	isbinary = newline_added = 0;
+#ifdef DES
 	if (des)
 		init_des_cipher();
+#endif
 	for (current_addr = n; (len = get_stream_line(fp)) > 0; size += len) {
 		SPL1();
 		if (put_sbuf_line(sbuf) == NULL) {
@@ -120,6 +114,11 @@ read_stream(FILE *fp, int n)
 	return size;
 }
 
+#ifdef DES
+#define DESGETCHAR(fp) (des ? get_des_char((fp)) : getc((fp)))
+#else
+#define DESGETCHAR(fp) (getc((fp)))
+#endif
 
 /* get_stream_line: read a line of text from a stream; return line length */
 int
@@ -128,7 +127,7 @@ get_stream_line(FILE *fp)
 	int c;
 	int i = 0;
 
-	while (((c = des ? get_des_char(fp) : getc(fp)) != EOF || (!feof(fp) &&
+	while (((c = DESGETCHAR(fp)) != EOF || (!feof(fp) &&
 	    !ferror(fp))) && c != '\n') {
 		REALLOC(sbuf, sbufsz, i + 1, ERR);
 		if (!(sbuf[i++] = c))
@@ -169,7 +168,7 @@ write_file(char *fn, char *mode, int n, int m)
 		seterrmsg("cannot close output file");
 		return ERR;
 	}
-	fprintf(stderr, !scripted ? "%lu\n" : "", size);
+	fprintf(stderr, !scripted ? "%d\n" : "", size);
 	return n ? m - n + 1 : 0;
 }
 
@@ -183,8 +182,10 @@ write_stream(FILE *fp, int n, int m)
 	char *s;
 	int len;
 
+#ifdef DES
 	if (des)
 		init_des_cipher();
+#endif
 	for (; n && n <= m; n++, lp = lp->q_forw) {
 		if ((s = get_sbuf_line(lp)) == NULL)
 			return ERR;
@@ -195,24 +196,34 @@ write_stream(FILE *fp, int n, int m)
 			return ERR;
 		size += len;
 	}
+#ifdef DES
 	if (des) {
 		flush_des_file(fp);			/* flush buffer */
 		size += 8 - size % 8;			/* adjust DES size */
 	}
+#endif
 	return size;
 }
+
+#ifdef DES
+#define DESPUTCHAR(c, fp) (des ? put_des_char((c), (fp)) : fputc((c), (fp)))
+#else
+#define DESPUTCHAR(c, fp) (fputc((c), (fp)))
+#endif
 
 
 /* put_stream_line: write a line of text to a stream; return status */
 int
 put_stream_line(FILE *fp, char *s, int len)
 {
-	while (len--)
-		if ((des ? put_des_char(*s++, fp) : fputc(*s++, fp)) < 0) {
+	while (len--) {
+		if (DESPUTCHAR(*s, fp) < 0) {
 			perror(NULL);
 			seterrmsg("cannot write file");
 			return ERR;
 		}
+		s++;
+	}
 	return 0;
 }
 
