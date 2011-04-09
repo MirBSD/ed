@@ -1,4 +1,4 @@
-/*	$OpenBSD: cbc.c,v 1.13 2004/05/08 07:05:19 deraadt Exp $	*/
+/*	$OpenBSD: cbc.c,v 1.16 2009/10/27 23:59:21 deraadt Exp $	*/
 /*	$NetBSD: cbc.c,v 1.9 1995/03/21 09:04:36 cgd Exp $	*/
 
 /* cbc.c: This file contains the encryption routines for the ed line editor */
@@ -35,14 +35,6 @@
  *
  *	from: @(#)bdes.c	5.5 (Berkeley) 6/27/91
  */
-
-#ifndef lint
-#if 0
-static char *rcsid = "@(#)cbc.c,v 1.2 1994/02/01 00:34:36 alm Exp";
-#else
-static char rcsid[] = "$OpenBSD: cbc.c,v 1.13 2004/05/08 07:05:19 deraadt Exp $";
-#endif
-#endif /* not lint */
 
 #include <sys/types.h>
 #include <ctype.h>
@@ -85,10 +77,6 @@ typedef char Desbuf[8];
 /*
  * global variables and related macros
  */
-
-enum { 					/* encrypt, decrypt, authenticate */
-	MODE_ENCRYPT, MODE_DECRYPT, MODE_AUTHENTICATE
-} mode = MODE_ENCRYPT;
 
 Desbuf ivec;				/* initialization vector */
 Desbuf pvec;				/* padding vector */
@@ -174,7 +162,7 @@ get_keyword(void)
 	/*
 	 * get the key
 	 */
-	if (*(p = getpass("Enter key: "))) {
+	if ((p = getpass("Enter key: ")) != NULL && *p != '\0') {
 
 		/*
 		 * copy it, nul-padded, into the key area
