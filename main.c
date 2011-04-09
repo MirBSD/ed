@@ -55,7 +55,8 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.3 2011/04/09 16:28:48 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.4 2011/04/09 16:47:07 tg Exp $"
+	"\n\t@(""#)rcsid: " ED_H_ID);
 
 #ifdef _POSIX_SOURCE
 sigjmp_buf env;
@@ -91,15 +92,15 @@ char old_filename[MAXPATHLEN] = "";	/* default filename */
 int current_addr;		/* current address in editor buffer */
 int addr_last;			/* last address in editor buffer */
 int lineno;			/* script line number */
-char *prompt;			/* command-line prompt */
-char *dps = "*";		/* default command-line prompt */
+const char *prompt;		/* command-line prompt */
+const char dps[] = "*";		/* default command-line prompt */
 
-char *usage = "usage: %s [-] [-sx] [-p string] [file]\n";
+const char usage[] = "usage: %s [-] [-sx] [-p string] [file]\n";
 
 char *home;		/* home directory */
 
 void
-seterrmsg(char *s)
+seterrmsg(const char *s)
 {
 	strlcpy(errmsg, s, sizeof(errmsg));
 }
@@ -1354,7 +1355,7 @@ has_trailing_escape(char *s, char *t)
 
 /* strip_escapes: return copy of escaped string of at most length MAXPATHLEN */
 char *
-strip_escapes(char *s)
+strip_escapes(const char *s)
 {
 	static char *file = NULL;
 	static int filesz = 0;

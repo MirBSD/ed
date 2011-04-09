@@ -30,6 +30,7 @@
 
 #include "ed.h"
 
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.4 2011/04/09 16:47:07 tg Exp $");
 
 extern int scripted;
 
@@ -151,7 +152,7 @@ get_stream_line(FILE *fp)
 
 /* write_file: write a range of lines to a named file/pipe; return line count */
 int
-write_file(char *fn, char *mode, int n, int m)
+write_file(const char *fn, const char *mode, int n, int m)
 {
 	FILE *fp;
 	int size;

@@ -1,4 +1,4 @@
-/**	$MirOS: src/bin/ed/ed.h,v 1.4 2011/04/09 16:28:48 tg Exp $ */
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.5 2011/04/09 16:47:06 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.11 2007/02/24 13:24:47 millert Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -206,7 +206,7 @@ void clear_undo_stack(void);
 int close_sbuf(void);
 int copy_lines(int);
 int delete_lines(int, int);
-void des_error(char *);
+void des_error(const char *);
 int display_lines(int, int, int);
 line_t *dup_line_node(line_t *);
 int exec_command(void);
@@ -230,8 +230,8 @@ char *get_sbuf_line(line_t *);
 int get_shell_command(void);
 int get_stream_line(FILE *);
 int get_tty_line(void);
-void handle_hup(int);
-void handle_int(int);
+void handle_hup(int) __attribute__((noreturn));
+void handle_int(int) __attribute__((noreturn));
 void handle_winch(int);
 int has_trailing_escape(char *, char *);
 int hex_to_binary(int, int);
@@ -251,21 +251,21 @@ int put_des_char(int, FILE *);
 char *put_sbuf_line(char *);
 int put_stream_line(FILE *, char *, int);
 int put_tty_line(char *, int, int, int);
-void quit(int);
+void quit(int) __attribute__((noreturn));
 int read_file(char *, int);
 int read_stream(FILE *, int);
 int search_and_replace(pattern_t *, int, int);
 int set_active_node(line_t *);
 void set_des_key(char *);
-void seterrmsg(char *);
+void seterrmsg(const char *);
 void signal_hup(int);
 void signal_int(int);
-char *strip_escapes(char *);
+char *strip_escapes(const char *);
 int substitute_matching_text(pattern_t *, line_t *, int, int);
 char *translit_text(char *, int, int, int);
 void unmark_line_node(line_t *);
 void unset_active_nodes(line_t *, line_t *);
-int write_file(char *, char *, int, int);
+int write_file(const char *, const char *, int, int);
 int write_stream(FILE *, int, int);
 
 /* global buffers */

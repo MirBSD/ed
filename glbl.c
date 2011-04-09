@@ -34,6 +34,7 @@
 
 #include "ed.h"
 
+__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.2 2011/04/09 16:47:07 tg Exp $");
 
 /* build_active_list:  add line matching a pattern to the global-active list */
 int
@@ -66,6 +67,9 @@ build_active_list(int isgcmd)
 	return 0;
 }
 
+#ifdef BACKWARDS
+static char nullcmd[] = "p\n";
+#endif
 
 /* exec_global: apply command list in the command buffer to the active
    lines in a range; return command status */
@@ -83,7 +87,8 @@ exec_global(int interact, int gflag)
 #ifdef BACKWARDS
 	if (!interact) {
 		if (!strcmp(ibufp, "\n"))
-			cmd = "p\n";		/* null cmd-list == `p' */
+			/* null cmd-list = "p" */
+			cmd = nullcmd;
 		else if ((cmd = get_extended_line(&n, 0)) == NULL)
 			return ERR;
 	}
