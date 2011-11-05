@@ -55,7 +55,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.4 2011/04/09 16:47:07 tg Exp $"
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.5 2011/11/05 23:26:15 tg Exp $"
 	"\n\t@(""#)rcsid: " ED_H_ID);
 
 #ifdef _POSIX_SOURCE
@@ -161,7 +161,7 @@ top:
 	}
 
 	/* assert: reliable signals! */
-#ifdef SIGWINCH
+#if defined(SIGWINCH) && defined(TIOCGWINSZ)
 	handle_winch(SIGWINCH);
 	if (isatty(0))
 		signal(SIGWINCH, handle_winch);
@@ -1431,6 +1431,7 @@ handle_int(int signo)
 }
 
 
+#if defined(SIGWINCH) && defined(TIOCGWINSZ)
 void
 handle_winch(int signo)
 {
@@ -1446,6 +1447,7 @@ handle_winch(int signo)
 	}
 	errno = save_errno;
 }
+#endif
 
 
 /* is_legal_filename: return a legal filename */
