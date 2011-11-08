@@ -34,9 +34,10 @@
 
 #include "ed.h"
 
+__RCSID("$MirOS: src/bin/ed/buf.c,v 1.2 2011/11/08 23:17:26 tg Exp $");
 
 FILE *sfp;				/* scratch file pointer */
-off_t sfseek;				/* scratch file position */
+tp_ftell sfseek;			/* scratch file position */
 int seek_write;				/* seek before writing */
 line_t buffer_head;			/* incore buffer */
 
@@ -56,7 +57,7 @@ get_sbuf_line(line_t *lp)
 	/* out of position */
 	if (sfseek != lp->seek) {
 		sfseek = lp->seek;
-		if (fseeko(sfp, sfseek, SEEK_SET) < 0) {
+		if (do_fseek(sfp, sfseek, SEEK_SET) < 0) {
 			perror(NULL);
 			seterrmsg("cannot seek temp file");
 			return NULL;

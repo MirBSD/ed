@@ -1,4 +1,4 @@
-# $MirOS: src/bin/ed/GNUmakefile,v 1.2 2011/04/09 17:04:48 tg Exp $
+# $MirOS: src/bin/ed/GNUmakefile,v 1.3 2011/11/08 23:17:26 tg Exp $
 #-
 # Makefile for GNU make, possibly nmake
 # You will need to provide strlcpy(3) and strlcat(3) to the link.
@@ -9,7 +9,8 @@ DEFS1=		-DBACKWARDS
 DEFS2=		-D'__SCCSID(x)=static const char __sccsid[] = x'
 DEFS3=		-D'__RCSID(x)=static const char __rcsid[] = x'
 DEFS4=		-D'__COPYRIGHT(x)=static const char __copyright[] = x'
-DEFS=		$(DEFS1) $(DEFS2) $(DEFS3) $(DEFS4)
+#DEFS5=		-DNO_FSEEKO
+DEFS=		$(DEFS1) $(DEFS2) $(DEFS3) $(DEFS4) $(DEFS5)
 
 all: $(PROG)
 

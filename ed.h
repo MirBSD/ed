@@ -1,4 +1,4 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.5 2011/04/09 16:47:06 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.6 2011/11/08 23:17:27 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.11 2007/02/24 13:24:47 millert Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -63,6 +63,16 @@
 # define LINECHARS MAXINT	/* max chars per line */
 #endif
 
+#ifdef NO_FSEEKO
+#define do_fseek fseek
+#define do_ftell ftell
+#define tp_ftell long
+#else
+#define do_fseek fseeko
+#define do_ftell ftello
+#define tp_ftell off_t
+#endif
+
 /* gflags */
 #define GLB 001		/* global command */
 #define GPR 002		/* print after command */
@@ -76,7 +86,7 @@ typedef regex_t pattern_t;
 typedef struct	line {
 	struct line	*q_forw;
 	struct line	*q_back;
-	off_t		seek;		/* address of line in scratch buffer */
+	tp_ftell	seek;		/* address of line in scratch buffer */
 	int		len;		/* length of line */
 } line_t;
 
