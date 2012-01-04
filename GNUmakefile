@@ -1,7 +1,8 @@
-# $MirOS: src/bin/ed/GNUmakefile,v 1.3 2011/11/08 23:17:26 tg Exp $
+# $MirOS: src/bin/ed/GNUmakefile,v 1.4 2012/01/04 21:27:33 tg Exp $
 #-
 # Makefile for GNU make, possibly nmake
-# You will need to provide strlcpy(3) and strlcat(3) to the link.
+# You will need to provide strlcpy(3) and strlcat(3) to the link by
+# setting the DPADD (dependency) and LDADD (link object) correctly.
 
 PROG=		ed
 OBJS=		buf.o glbl.o io.o main.o re.o sub.o undo.o
