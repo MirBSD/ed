@@ -30,7 +30,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/io.c,v 1.4 2011/04/09 16:47:07 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.5 2012/01/04 21:57:44 tg Exp $");
 
 extern int scripted;
 
@@ -59,7 +59,14 @@ read_file(char *fn, int n)
 }
 
 
+#ifdef DES
 extern int des;
+#define DESGETCHAR(fp) (des ? get_des_char((fp)) : getc((fp)))
+#define DESPUTCHAR(c, fp) (des ? put_des_char((c), (fp)) : fputc((c), (fp)))
+#else
+#define DESGETCHAR(fp) (getc((fp)))
+#define DESPUTCHAR(c, fp) (fputc((c), (fp)))
+#endif
 
 char *sbuf;			/* file i/o buffer */
 int sbufsz;			/* file i/o buffer size */
@@ -110,16 +117,14 @@ read_stream(FILE *fp, int n)
 		newline_added = 1;
 	newline_added = appended ? newline_added : o_newline_added;
 	isbinary = isbinary | o_isbinary;
+#ifdef DES
 	if (des)
-		size += 8 - size % 8;			/* adjust DES size */
+		/* adjust DES size */
+		size += 8 - size % 8;
+#endif
 	return size;
 }
 
-#ifdef DES
-#define DESGETCHAR(fp) (des ? get_des_char((fp)) : getc((fp)))
-#else
-#define DESGETCHAR(fp) (getc((fp)))
-#endif
 
 /* get_stream_line: read a line of text from a stream; return line length */
 int
@@ -205,12 +210,6 @@ write_stream(FILE *fp, int n, int m)
 #endif
 	return size;
 }
-
-#ifdef DES
-#define DESPUTCHAR(c, fp) (des ? put_des_char((c), (fp)) : fputc((c), (fp)))
-#else
-#define DESPUTCHAR(c, fp) (fputc((c), (fp)))
-#endif
 
 
 /* put_stream_line: write a line of text to a stream; return status */

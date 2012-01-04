@@ -4,6 +4,8 @@
 /* main.c: This file contains the main control and user-interface routines
    for the ed line editor. */
 /*-
+ * Copyright (c) 2003, 2004, 2005, 2008, 2009, 2011, 2012
+ *	Thorsten "mirabilos" Glaser <tg@mirbsd.org>
  * Copyright (c) 1993 Andrew Moore, Talke Studio.
  * All rights reserved.
  *
@@ -55,7 +57,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.8 2012/01/04 21:38:46 tg Exp $"
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.9 2012/01/04 21:57:44 tg Exp $"
 	"\n\t@(""#)rcsid: " ED_H_ID);
 
 #ifdef _POSIX_SOURCE
@@ -74,7 +76,9 @@ int ibufsz;			/* ed command-line buffer size */
 char *ibufp;			/* pointer to ed command-line buffer */
 
 /* global flags */
+#ifdef DES
 int des = 0;			/* if set, use crypt(3) for i/o */
+#endif
 int garrulous = 0;		/* if set, print all error messages */
 int isbinary;			/* if set, buffer contains ASCII NULs */
 int isglobal;			/* if set, doing a global command */
@@ -94,10 +98,9 @@ int addr_last;			/* last address in editor buffer */
 int lineno;			/* script line number */
 const char *prompt;		/* command-line prompt */
 const char dps[] = "*";		/* default command-line prompt */
+char *home;			/* home directory */
 
 const char usage[] = "usage: %s [-] [-sx] [-p string] [file]\n";
-
-char *home;		/* home directory */
 
 void
 seterrmsg(const char *s)

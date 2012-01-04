@@ -3,6 +3,8 @@
 
 /* cbc.c: This file contains the encryption routines for the ed line editor */
 /*-
+ * Copyright (c) 2003, 2004, 2005, 2011, 2012
+ *	Thorsten "mirabilos" Glaser <tg@mirbsd.org>
  * Copyright (c) 1993 The Regents of the University of California.
  * All rights reserved.
  *
@@ -43,7 +45,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/cbc.c,v 1.2 2011/04/09 16:47:06 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/cbc.c,v 1.3 2012/01/04 21:57:44 tg Exp $");
 
 /*
  * BSD and System V systems offer special library calls that do
@@ -89,6 +91,14 @@ int pflag;				/* 1 to preserve parity bits */
 unsigned char des_buf[8];	/* shared buffer for get_des_char/put_des_char */
 int des_ct = 0;			/* count for get_des_char/put_des_char */
 int des_n = 0;			/* index for put_des_char/get_des_char */
+
+
+static int cbc_decode(char *, FILE *);
+static int cbc_encode(char *, int, FILE *);
+static void des_error(const char *);
+static void expand_des_key(char *, const char *);
+static int hex_to_binary(int, int);
+static void set_des_key(char *);
 
 
 /* init_des_cipher: initialize DES */
@@ -181,7 +191,7 @@ get_keyword(void)
 /*
  * print a warning message and, possibly, terminate
  */
-void
+static void
 des_error(const char *s)
 {
 	seterrmsg(s ? s : strerror(errno));
@@ -190,7 +200,7 @@ des_error(const char *s)
 /*
  * map a hex character to an integer
  */
-int
+static int
 hex_to_binary(int c, int radix)
 {
 	switch(c) {
@@ -220,8 +230,8 @@ hex_to_binary(int c, int radix)
 /*
  * convert the key to a bit pattern
  */
-void
-expand_des_key(char *obuf, char *ibuf_)
+static void
+expand_des_key(char *obuf, const char *kbuf)
 {
 	int i, j;			/* counter in a for loop */
 	int nbuf[64];			/* used for hex/key translation */
@@ -229,13 +239,13 @@ expand_des_key(char *obuf, char *ibuf_)
 	/*
 	 * leading '0x' or '0X' == hex key
 	 */
-	if (ibuf_[0] == '0' && (ibuf_[1] == 'x' || ibuf_[1] == 'X')) {
-		ibuf_ = &ibuf_[2];
+	if (kbuf[0] == '0' && (kbuf[1] == 'x' || kbuf[1] == 'X')) {
+		kbuf = &kbuf[2];
 		/*
 		 * now translate it, bombing on any illegal hex digit
 		 */
-		for (i = 0; ibuf_[i] && i < 16; i++)
-			if ((nbuf[i] = hex_to_binary((int) ibuf_[i], 16)) == -1)
+		for (i = 0; kbuf[i] && i < 16; i++)
+			if ((nbuf[i] = hex_to_binary((int) kbuf[i], 16)) == -1)
 				des_error("bad hex digit in key");
 		while (i < 16)
 			nbuf[i++] = 0;
@@ -249,13 +259,13 @@ expand_des_key(char *obuf, char *ibuf_)
 	/*
 	 * leading '0b' or '0B' == binary key
 	 */
-	if (ibuf_[0] == '0' && (ibuf_[1] == 'b' || ibuf_[1] == 'B')) {
-		ibuf_ = &ibuf_[2];
+	if (kbuf[0] == '0' && (kbuf[1] == 'b' || kbuf[1] == 'B')) {
+		kbuf = &kbuf[2];
 		/*
 		 * now translate it, bombing on any illegal binary digit
 		 */
-		for (i = 0; ibuf_[i] && i < 16; i++)
-			if ((nbuf[i] = hex_to_binary((int) ibuf_[i], 2)) == -1)
+		for (i = 0; kbuf[i] && i < 16; i++)
+			if ((nbuf[i] = hex_to_binary((int) kbuf[i], 2)) == -1)
 				des_error("bad binary digit in key");
 		while (i < 64)
 			nbuf[i++] = 0;
@@ -269,7 +279,7 @@ expand_des_key(char *obuf, char *ibuf_)
 	/*
 	 * no special leader -- ASCII
 	 */
-	strncpy(obuf, ibuf_, 8);		/* XXX ? */
+	strncpy(obuf, kbuf, 8);		/* XXX ? */
 }
 
 /*****************
@@ -286,7 +296,7 @@ expand_des_key(char *obuf, char *ibuf_)
  * systems set the parity (high) bit of each character to 0, and the
  * DES ignores the low order bit of each character.
  */
-void
+static void
 set_des_key(Desbuf buf)
 {
 	int i, j;				/* counter in a for loop */
@@ -315,7 +325,7 @@ set_des_key(Desbuf buf)
 /*
  * This encrypts using the Cipher Block Chaining mode of DES
  */
-int
+static int
 cbc_encode(char *msgbuf, int n, FILE *fp)
 {
 	int inverse = 0;	/* 0 to encrypt, 1 to decrypt */
@@ -351,10 +361,10 @@ cbc_encode(char *msgbuf, int n, FILE *fp)
 /*
  * This decrypts using the Cipher Block Chaining mode of DES
  */
-int
+static int
 cbc_decode(char *msgbuf, FILE *fp)
 {
-	Desbuf ibuf_;		/* temp buffer for initialization vector */
+	Desbuf ivbuf;		/* temp buffer for initialization vector */
 	int n;			/* number of bytes actually read */
 	int c;			/* used to test for EOF */
 	int inverse = 1;	/* 0 to encrypt, 1 to decrypt */
@@ -363,11 +373,11 @@ cbc_decode(char *msgbuf, FILE *fp)
 		/*
 		 * do the transformation
 		 */
-		MEMCPY(BUFFER(ibuf_), BUFFER(msgbuf), 8);
+		MEMCPY(BUFFER(ivbuf), BUFFER(msgbuf), 8);
 		DES_XFORM(UBUFFER(msgbuf));
 		for (c = 0; c < 8; c++)
 			UCHAR(msgbuf, c) ^= UCHAR(ivec, c);
-		MEMCPY(BUFFER(ivec), BUFFER(ibuf_), 8);
+		MEMCPY(BUFFER(ivec), BUFFER(ivbuf), 8);
 		/*
 		 * if the last one, handle it specially
 		 */
