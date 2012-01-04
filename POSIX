@@ -21,7 +21,7 @@ OMISSIONS
 EXTENSIONS
 ----------
 1) BSD commands have been implemented wherever they do not conflict with
-   the POSIX standard.  The BSD-ism's included are:
+   the POSIX standard.  The BSDisms included are:
 	i) `s' (i.e., s[n][rgp]*) to repeat a previous substitution,
 	ii) `W' for appending text to an existing file,
 	iii) `wq' for exiting after a write,
@@ -80,7 +80,7 @@ DEVIATIONS
    undo forces a global command list to be executed only once, rather than
    for each line matching a global pattern.  In addition, each instance of
    `u' within a global command undoes all previous commands (including
-   undo's) in the command list.  This seems the best way, since the
+   undos) in the command list.  This seems the best way, since the
    alternatives are either too complicated to implement or too confusing
    to use.  
 
