@@ -34,7 +34,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/buf.c,v 1.3 2012/01/04 21:29:22 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/buf.c,v 1.4 2012/01/04 21:38:46 tg Exp $");
 
 FILE *sfp;				/* scratch file pointer */
 tp_ftell sfpos;				/* scratch file position */
@@ -258,7 +258,11 @@ init_buffers(void)
 	   !cat
 	   hello, world
 	   EOF */
+#ifdef _IOFBF
+	setvbuf(stdin, stdinbuf, _IOFBF, 1);
+#else
 	setbuffer(stdin, stdinbuf, 1);
+#endif
 	if (open_sbuf() < 0)
 		quit(2);
 	REQUE(&buffer_head, &buffer_head);

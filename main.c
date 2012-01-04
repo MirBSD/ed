@@ -55,7 +55,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.7 2012/01/04 21:30:33 tg Exp $"
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.8 2012/01/04 21:38:46 tg Exp $"
 	"\n\t@(""#)rcsid: " ED_H_ID);
 
 #ifdef _POSIX_SOURCE
@@ -155,7 +155,11 @@ top:
 		if (fstat(STDIN_FILENO, &sb) || !S_ISFIFO(sb.st_mode)) {
 			if (lseek(STDIN_FILENO, (off_t)0, SEEK_CUR)) {
 				interactive = 1;
+#ifdef _IOLBF
+				setvbuf(stdout, NULL, _IOLBF, 0);
+#else
 				setlinebuf(stdout);
+#endif
 			}
 		}
 	}
