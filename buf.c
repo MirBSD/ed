@@ -34,10 +34,10 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/buf.c,v 1.2 2011/11/08 23:17:26 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/buf.c,v 1.3 2012/01/04 21:29:22 tg Exp $");
 
 FILE *sfp;				/* scratch file pointer */
-tp_ftell sfseek;			/* scratch file position */
+tp_ftell sfpos;				/* scratch file position */
 int seek_write;				/* seek before writing */
 line_t buffer_head;			/* incore buffer */
 
@@ -55,9 +55,9 @@ get_sbuf_line(line_t *lp)
 		return NULL;
 	seek_write = 1;				/* force seek on write */
 	/* out of position */
-	if (sfseek != lp->seek) {
-		sfseek = lp->seek;
-		if (do_fseek(sfp, sfseek, SEEK_SET) < 0) {
+	if (sfpos != lp->adr) {
+		sfpos = lp->adr;
+		if (do_fseek(sfp, sfpos, SEEK_SET) < 0) {
 			perror(NULL);
 			seterrmsg("cannot seek temp file");
 			return NULL;
@@ -70,7 +70,7 @@ get_sbuf_line(line_t *lp)
 		seterrmsg("cannot read temp file");
 		return NULL;
 	}
-	sfseek += len;				/* update file position */
+	sfpos += len;				/* update file position */
 	sfbuf[len] = '\0';
 	return sfbuf;
 }
@@ -101,27 +101,27 @@ put_sbuf_line(char *cs)
 	len = s - cs;
 	/* out of position */
 	if (seek_write) {
-		if (fseek(sfp, 0L, SEEK_END) < 0) {
+		if (do_fseek(sfp, (tp_ftell)0, SEEK_END) < 0) {
 			perror(NULL);
 			seterrmsg("cannot seek temp file");
 			free(lp);
 			return NULL;
 		}
-		sfseek = ftello(sfp);
+		sfpos = do_ftell(sfp);
 		seek_write = 0;
 	}
 	/* assert: SPL1() */
 	if ((ct = fwrite(cs, sizeof(char), len, sfp)) < 0 || ct != len) {
-		sfseek = -1;
+		sfpos = -1;
 		perror(NULL);
 		seterrmsg("cannot write temp file");
 		free(lp);
 		return NULL;
 	}
 	lp->len = len;
-	lp->seek  = sfseek;
+	lp->adr = sfpos;
 	add_line_node(lp);
-	sfseek += len;			/* update file position */
+	sfpos += len;			/* update file position */
 	return ++s;
 }
 
@@ -227,7 +227,7 @@ close_sbuf(void)
 		sfp = NULL;
 		unlink(sfn);
 	}
-	sfseek = seek_write = 0;
+	sfpos = seek_write = 0;
 	return 0;
 }
 

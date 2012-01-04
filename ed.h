@@ -1,4 +1,4 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.6 2011/11/08 23:17:27 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.7 2012/01/04 21:29:22 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.11 2007/02/24 13:24:47 millert Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -86,7 +86,7 @@ typedef regex_t pattern_t;
 typedef struct	line {
 	struct line	*q_forw;
 	struct line	*q_back;
-	tp_ftell	seek;		/* address of line in scratch buffer */
+	tp_ftell	adr;		/* address of line in scratch buffer */
 	int		len;		/* length of line */
 } line_t;
 

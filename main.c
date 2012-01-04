@@ -55,7 +55,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.5 2011/11/05 23:26:15 tg Exp $"
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.6 2012/01/04 21:29:22 tg Exp $"
 	"\n\t@(""#)rcsid: " ED_H_ID);
 
 #ifdef _POSIX_SOURCE
@@ -153,7 +153,7 @@ top:
 
 		/* assert: pipes show up as fifo's when fstat'd */
 		if (fstat(STDIN_FILENO, &sb) || !S_ISFIFO(sb.st_mode)) {
-			if (lseek(STDIN_FILENO, 0, SEEK_CUR)) {
+			if (lseek(STDIN_FILENO, (off_t)0, SEEK_CUR)) {
 				interactive = 1;
 				setlinebuf(stdout);
 			}
@@ -1338,7 +1338,7 @@ dup_line_node(line_t *lp)
 		seterrmsg("out of memory");
 		return NULL;
 	}
-	np->seek = lp->seek;
+	np->adr = lp->adr;
 	np->len = lp->len;
 	return np;
 }
