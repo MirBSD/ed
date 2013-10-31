@@ -1,9 +1,11 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.8 2012/01/04 21:57:44 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.9 2013/10/31 20:05:37 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.11 2007/02/24 13:24:47 millert Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
 /* ed.h: type and constant definitions for the ed editor. */
 /*
+ * Copyright © 2013
+ *	Thorsten “mirabilos” Glaser <tg@mirbsd.org>
  * Copyright (c) 1993 Andrew Moore
  * All rights reserved.
  *
@@ -236,8 +238,8 @@ char *get_sbuf_line(line_t *);
 int get_shell_command(void);
 int get_stream_line(FILE *);
 int get_tty_line(void);
-void handle_hup(int) __attribute__((noreturn));
-void handle_int(int) __attribute__((noreturn));
+void handle_hup(int) __attribute__((__noreturn__));
+void handle_int(int) __attribute__((__noreturn__));
 void handle_winch(int);
 int has_trailing_escape(char *, char *);
 void init_buffers(void);
@@ -256,7 +258,7 @@ int put_des_char(int, FILE *);
 char *put_sbuf_line(char *);
 int put_stream_line(FILE *, char *, int);
 int put_tty_line(char *, int, int, int);
-void quit(int) __attribute__((noreturn));
+void quit(int) __attribute__((__noreturn__));
 int read_file(char *, int);
 int read_stream(FILE *, int);
 int search_and_replace(pattern_t *, int, int);
