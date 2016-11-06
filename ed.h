@@ -1,4 +1,4 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.10 2016/11/06 18:58:44 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.11 2016/11/06 19:36:02 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.22 2016/03/27 00:43:38 mmcc Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -36,6 +36,15 @@
 #include <limits.h>
 #include <regex.h>
 #include <signal.h>
+
+#ifdef NEED_STRLFUN_DECL
+size_t strlcat(char *, const char *, size_t);
+size_t strlcpy(char *, const char *, size_t);
+#endif
+
+#ifdef NEED_REALLOCARRAY_DECL
+void *reallocarray(void *, size_t, size_t);
+#endif
 
 #define ERR		(-2)
 #define EMOD		(-3)
