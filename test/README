@@ -1,4 +1,4 @@
-$MirOS: src/bin/ed/test/README,v 1.2 2016/11/06 18:58:45 tg Exp $
+$MirOS: src/bin/ed/test/README,v 1.3 2016/11/06 20:01:36 tg Exp $
 $OpenBSD: README,v 1.2 1996/06/23 14:20:06 deraadt Exp $
 $NetBSD: README,v 1.8 1995/03/21 09:05:18 cgd Exp $
 
@@ -25,10 +25,17 @@ or:
 
 The POSIX requirement that an address range not be used where at most
 a single address is expected has been relaxed in this version of ed.
-Therefore, the  following scripts  which test for compliance with this
-POSIX rule exit abnormally:
-=-err.ed
-a1-err.ed
-i1-err.ed
-k1-err.ed
-r1-err.ed
+Therefore, the following scripts which test for compliance with this
+POSIX rule exit abnormally (BSD ed as well as GNU ed):
+* =.red
+* a1.red
+* i1.red
+* k1.red
+* r1.red
+
+The following test failures are also known:
+* c2.red (GNU ed only) => analysed to likely be correct in BSD ed
+* i3.red (BSD ed and GNU ed both) => recent change in OpenBSD ed
+  (likely to what users expect)
+* s2.red (BSD ed only) => recent change in OpenBSD ed
+  (used to fail like GNU ed does, infinite substitution loop)
