@@ -1,4 +1,4 @@
-/*	$OpenBSD: glbl.c,v 1.12 2009/10/27 23:59:21 deraadt Exp $	*/
+/*	$OpenBSD: glbl.c,v 1.18 2016/03/22 17:58:28 mmcc Exp $	*/
 /*	$NetBSD: glbl.c,v 1.2 1995/03/21 09:04:41 cgd Exp $	*/
 
 /* glob.c: This file contains the global command routines for the ed line
@@ -32,14 +32,22 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 
+#include <regex.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "ed.h"
 
+static int set_active_node(line_t *);
+static line_t *next_active_node(void);
 
 /* build_active_list:  add line matching a pattern to the global-active list */
 int
 build_active_list(int isgcmd)
 {
-	pattern_t *pat;
+	regex_t *pat;
 	line_t *lp;
 	int n;
 	char *s;
@@ -135,41 +143,27 @@ exec_global(int interact, int gflag)
 }
 
 
-line_t **active_list;		/* list of lines active in a global command */
-int active_last;		/* index of last active line in active_list */
-int active_size;		/* size of active_list */
-int active_ptr;			/* active_list index (non-decreasing) */
-int active_ndx;			/* active_list index (modulo active_last) */
+static line_t **active_list;	/* list of lines active in a global command */
+static int active_last;		/* index of last active line in active_list */
+static int active_size;		/* size of active_list */
+static int active_ptr;		/* active_list index (non-decreasing) */
+static int active_ndx;		/* active_list index (modulo active_last) */
 
 /* set_active_node: add a line node to the global-active list */
-int
+static int
 set_active_node(line_t *lp)
 {
 	if (active_last + 1 > active_size) {
 		int ti = active_size;
 		line_t **ts;
 		SPL1();
-#if defined(sun) || defined(NO_REALLOC_NULL)
-		if (active_list != NULL) {
-#endif
-			if ((ts = (line_t **) realloc(active_list,
-			    (ti += MINBUFSZ) * sizeof(line_t **))) == NULL) {
-				perror(NULL);
-				seterrmsg("out of memory");
-				SPL0();
-				return ERR;
-			}
-#if defined(sun) || defined(NO_REALLOC_NULL)
-		} else {
-			if ((ts = (line_t **) calloc(ti += MINBUFSZ,
-			    sizeof(line_t **))) == NULL) {
-				perror(NULL);
-				seterrmsg("out of memory");
-				SPL0();
-				return ERR;
-			}
+		if ((ts = reallocarray(active_list,
+		    (ti += MINBUFSZ), sizeof(line_t **))) == NULL) {
+			perror(NULL);
+			seterrmsg("out of memory");
+			SPL0();
+			return ERR;
 		}
-#endif
 		active_size = ti;
 		active_list = ts;
 		SPL0();
@@ -197,7 +191,7 @@ unset_active_nodes(line_t *np, line_t *mp)
 
 
 /* next_active_node: return the next global-active line node */
-line_t *
+static line_t *
 next_active_node(void)
 {
 	while (active_ptr < active_last && active_list[active_ptr] == NULL)
