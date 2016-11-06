@@ -1,11 +1,11 @@
-/*	$OpenBSD: main.c,v 1.34 2010/08/12 02:00:28 kevlo Exp $	*/
+/*	$OpenBSD: main.c,v 1.58 2016/08/16 20:04:46 natano Exp $	*/
 /*	$NetBSD: main.c,v 1.3 1995/03/21 09:04:44 cgd Exp $	*/
 
 /* main.c: This file contains the main control and user-interface routines
    for the ed line editor. */
 /*-
- * Copyright (c) 2003, 2004, 2005, 2008, 2009, 2011, 2012
- *	Thorsten "mirabilos" Glaser <tg@mirbsd.org>
+ * Copyright (c) 2003, 2004, 2005, 2008, 2009, 2011, 2012, 2016
+ *	mirabilos <m@mirbsd.org>
  * Copyright (c) 1993 Andrew Moore, Talke Studio.
  * All rights reserved.
  *
@@ -41,66 +41,85 @@
  *	The buffering algorithm is attributed to Rodney Ruddock of
  *	the University of Guelph, Guelph, Ontario.
  *
- *	The cbc.c encryption code is adapted from
- *	the bdes program by Matt Bishop of Dartmouth College,
- *	Hanover, NH.
- *
  */
 
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+
 #include <ctype.h>
-#include <setjmp.h>
-#include <unistd.h>
+#include <err.h>
+#include <errno.h>
+#include <limits.h>
 #include <pwd.h>
+#include <regex.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.9 2012/01/04 21:57:44 tg Exp $"
-	"\n\t@(""#)rcsid: " ED_H_ID);
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.10 2016/11/06 18:58:44 tg Exp $");
+__IDSTRING(ed_h, ED_H_ID);
 
-#ifdef _POSIX_SOURCE
+void signal_hup(int);
+void signal_int(int);
+void handle_winch(int);
+
+static int next_addr(void);
+static int check_addr_range(int, int);
+static int get_matching_node_addr(regex_t *, int);
+static char *get_filename(void);
+static int get_shell_command(void);
+static int append_lines(int);
+static int join_lines(int, int);
+static int move_lines(int);
+static int copy_lines(int);
+static int mark_line_node(line_t *, int);
+static int get_marked_node_addr(int);
+static line_t *dup_line_node(line_t *);
+
 sigjmp_buf env;
-#else
-jmp_buf env;
-#endif
 
 /* static buffers */
-char stdinbuf[1];		/* stdin buffer */
-char *shcmd;			/* shell command buffer */
-int shcmdsz;			/* shell command buffer size */
-int shcmdi;			/* shell command buffer index */
+static char errmsg[PATH_MAX + 40];	/* error message buffer */
+static char *shcmd;		/* shell command buffer */
+static int shcmdsz;		/* shell command buffer size */
+static int shcmdi;		/* shell command buffer index */
+static char old_filename[PATH_MAX];	/* default filename */
+
+/* global buffers */
 char *ibuf;			/* ed command-line buffer */
 int ibufsz;			/* ed command-line buffer size */
 char *ibufp;			/* pointer to ed command-line buffer */
 
 /* global flags */
-#ifdef DES
-int des = 0;			/* if set, use crypt(3) for i/o */
-#endif
 int garrulous = 0;		/* if set, print all error messages */
 int isbinary;			/* if set, buffer contains ASCII NULs */
 int isglobal;			/* if set, doing a global command */
 int modified;			/* if set, buffer modified since last write */
-int mutex = 0;			/* if set, signals set "sigflags" */
-int red = 0;			/* if set, restrict shell/directory access */
 int scripted = 0;		/* if set, suppress diagnostics */
-int sigflags = 0;		/* if set, signals received while mutex set */
 int interactive = 0;		/* if set, we are in interactive mode */
+
+volatile sig_atomic_t mutex = 0;  /* if set, signals set flags */
+volatile sig_atomic_t sighup = 0; /* if set, sighup received while mutex set */
+volatile sig_atomic_t sigint = 0; /* if set, sigint received while mutex set */
 
 /* if set, signal handlers are enabled */
 volatile sig_atomic_t sigactive = 0;
 
-char old_filename[MAXPATHLEN] = "";	/* default filename */
 int current_addr;		/* current address in editor buffer */
 int addr_last;			/* last address in editor buffer */
 int lineno;			/* script line number */
-const char *prompt;		/* command-line prompt */
-const char dps[] = "*";		/* default command-line prompt */
-char *home;			/* home directory */
+static const char *prompt;	/* command-line prompt */
+static const char *dps = "*";	/* default command-line prompt */
 
-const char usage[] = "usage: %s [-] [-sx] [-p string] [file]\n";
+static const char usage[] = "usage: %s [-] [-s] [-p string] [file]\n";
+
+static char *home;		/* home directory */
 
 void
 seterrmsg(const char *s)
@@ -113,28 +132,27 @@ int
 main(volatile int argc, char ** volatile argv)
 {
 	int c, n;
-	int status = 0;
+	volatile int status = 0;
+
+#if defined(__OpenBSD__) && !defined(__MirBSD__)
+	if (pledge("stdio rpath wpath cpath proc exec tty", NULL) == -1)
+		err(1, "pledge");
+#endif
 
 	home = getenv("HOME");
 
-	red = (n = strlen(argv[0])) > 2 && argv[0][n - 3] == 'r';
 top:
 	while ((c = getopt(argc, argv, "p:sx")) != -1)
 		switch (c) {
 		case 'p':				/* set prompt */
-			prompt = optarg;
+			dps = prompt = optarg;
 			break;
 		case 's':				/* run script */
 			scripted = 1;
 			break;
 		case 'x':				/* use crypt */
-#ifdef DES
-			des = get_keyword();
-#else
 			fprintf(stderr, "crypt unavailable\n?\n");
-#endif
 			break;
-
 		default:
 			fprintf(stderr, usage, argv[0]);
 			exit(1);
@@ -158,36 +176,29 @@ top:
 		if (fstat(STDIN_FILENO, &sb) || !S_ISFIFO(sb.st_mode)) {
 			if (lseek(STDIN_FILENO, (off_t)0, SEEK_CUR)) {
 				interactive = 1;
-#ifdef _IOLBF
 				setvbuf(stdout, NULL, _IOLBF, 0);
-#else
-				setlinebuf(stdout);
-#endif
 			}
 		}
 	}
 
 	/* assert: reliable signals! */
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
-	handle_winch(SIGWINCH);
-	if (isatty(0))
+	if (isatty(STDIN_FILENO)) {
+		handle_winch(SIGWINCH);
 		signal(SIGWINCH, handle_winch);
+	}
 #endif
 	signal(SIGHUP, signal_hup);
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGINT, signal_int);
-#ifdef _POSIX_SOURCE
-	if (status = sigsetjmp(env, 1))
-#else
-	if ((status = setjmp(env)) != 0)
-#endif
-	{
+	if (sigsetjmp(env, 1)) {
+		status = -1;
 		fputs("\n?\n", stderr);
 		seterrmsg("interrupt");
 	} else {
 		init_buffers();
 		sigactive = 1;			/* enable signal handlers */
-		if (argc && **argv && is_legal_filename(*argv)) {
+		if (argc && **argv) {
 			if (read_file(*argv, 0) < 0 && !interactive)
 				quit(2);
 			else if (**argv != '!')
@@ -244,6 +255,7 @@ top:
 		switch (status) {
 		case EOF:
 			quit(0);
+			break;
 		case EMOD:
 			modified = 0;
 			fputs("?\n", stderr);		/* give warning */
@@ -264,6 +276,7 @@ top:
 				fprintf(stderr, garrulous ? "%s\n" : "",
 				    errmsg);
 			quit(3);
+			break;
 		default:
 			fputs("?\n", stderr);
 			if (!interactive) {
@@ -306,7 +319,7 @@ extract_addr_range(void)
 
 #define	SKIP_BLANKS() \
 	do { \
-		while (isspace(*ibufp) && *ibufp != '\n') \
+		while (isspace((unsigned char)*ibufp) && *ibufp != '\n') \
 			ibufp++; \
 	} while (0)
 
@@ -320,7 +333,7 @@ extract_addr_range(void)
 	
 
 /*  next_addr: return the next line address in the command buffer */
-int
+static int
 next_addr(void)
 {
 	char *hd;
@@ -331,7 +344,7 @@ next_addr(void)
 
 	SKIP_BLANKS();
 	for (hd = ibufp;; first = 0)
-		switch ((c = *ibufp)) {
+		switch ((c = (unsigned char)*ibufp)) {
 		case '+':
 		case '\t':
 		case ' ':
@@ -339,7 +352,7 @@ next_addr(void)
 		case '^':
 			ibufp++;
 			SKIP_BLANKS();
-			if (isdigit(*ibufp)) {
+			if (isdigit((unsigned char)*ibufp)) {
 				STRTOI(n, ibufp);
 				addr += (c == '-' || c == '^') ? -n : n;
 			} else if (!isspace(c))
@@ -369,7 +382,7 @@ next_addr(void)
 		case '\'':
 			MUST_BE_FIRST();
 			ibufp++;
-			if ((addr = get_marked_node_addr(*ibufp++)) < 0)
+			if ((addr = get_marked_node_addr((unsigned char)*ibufp++)) < 0)
 				return ERR;
 			break;
 		case '%':
@@ -486,11 +499,11 @@ exec_command(void)
 	extern int u_current_addr;
 	extern int u_addr_last;
 
-	static pattern_t *pat = NULL;
+	static regex_t *pat = NULL;
 	static int sgflag = 0;
 	static int sgnum = 0;
 
-	pattern_t *tpat;
+	regex_t *tpat;
 	char *fnp;
 	int gflag = 0;
 	int sflags = 0;
@@ -499,7 +512,7 @@ exec_command(void)
 	int c;
 
 	SKIP_BLANKS();
-	switch ((c = *ibufp++)) {
+	switch ((c = (unsigned char)*ibufp++)) {
 	case 'a':
 		GET_COMMAND_SUFFIX();
 		if (!isglobal) clear_undo_stack();
@@ -533,7 +546,7 @@ exec_command(void)
 		if (addr_cnt > 0) {
 			seterrmsg("unexpected address");
 			return ERR;
-		} else if (!isspace(*ibufp)) {
+		} else if (!isspace((unsigned char)*ibufp)) {
 			seterrmsg("unexpected command suffix");
 			return ERR;
 		} else if ((fnp = get_filename()) == NULL)
@@ -564,7 +577,7 @@ exec_command(void)
 		if (addr_cnt > 0) {
 			seterrmsg("unexpected address");
 			return ERR;
-		} else if (!isspace(*ibufp)) {
+		} else if (!isspace((unsigned char)*ibufp)) {
 			seterrmsg("unexpected command suffix");
 			return ERR;
 		} else if ((fnp = get_filename()) == NULL)
@@ -614,8 +627,7 @@ exec_command(void)
 		break;
 	case 'i':
 		if (second_addr == 0) {
-			seterrmsg("invalid address");
-			return ERR;
+			second_addr = 1;
 		}
 		GET_COMMAND_SUFFIX();
 		if (!isglobal) clear_undo_stack();
@@ -632,7 +644,7 @@ exec_command(void)
 			return ERR;
 		break;
 	case 'k':
-		c = *ibufp++;
+		c = (unsigned char)*ibufp++;
 		if (second_addr == 0) {
 			seterrmsg("invalid address");
 			return ERR;
@@ -696,7 +708,7 @@ exec_command(void)
 		gflag =  (modified && !scripted && c == 'q') ? EMOD : EOF;
 		break;
 	case 'r':
-		if (!isspace(*ibufp)) {
+		if (!isspace((unsigned char)*ibufp)) {
 			seterrmsg("unexpected command suffix");
 			return ERR;
 		} else if (addr_cnt == 0)
@@ -835,7 +847,7 @@ exec_command(void)
 			gflag = EOF;
 			ibufp++;
 		}
-		if (!isspace(*ibufp)) {
+		if (!isspace((unsigned char)*ibufp)) {
 			seterrmsg("unexpected command suffix");
 			return ERR;
 		} else if ((fnp = get_filename()) == NULL)
@@ -856,7 +868,7 @@ exec_command(void)
 		if ((addr = write_file(*fnp ? fnp : old_filename,
 		    (c == 'W') ? "a" : "w", first_addr, second_addr)) < 0)
 			return ERR;
-		else if (addr == addr_last)
+		else if (addr == addr_last && *fnp != '!')
 			modified = 0;
 		else if (modified && !scripted && n == 'q')
 			gflag = EMOD;
@@ -867,13 +879,8 @@ exec_command(void)
 			return ERR;
 		}
 		GET_COMMAND_SUFFIX();
-#ifdef DES
-		des = get_keyword();
-#else
 		seterrmsg("crypt unavailable");
 		return ERR;
-#endif
-		break;
 	case 'z':
 		first_addr = 1;
 #ifdef BACKWARDS
@@ -924,7 +931,7 @@ exec_command(void)
 
 
 /* check_addr_range: return status of address range check */
-int
+static int
 check_addr_range(int n, int m)
 {
 	if (addr_cnt == 0) {
@@ -943,8 +950,8 @@ check_addr_range(int n, int m)
 /* get_matching_node_addr: return the address of the next line matching a
    pattern in a given direction.  wrap around begin/end of editor buffer if
    necessary */
-int
-get_matching_node_addr(pattern_t *pat, int dir)
+static int
+get_matching_node_addr(regex_t *pat, int dir)
 {
 	char *s;
 	int n = current_addr;
@@ -968,7 +975,7 @@ get_matching_node_addr(pattern_t *pat, int dir)
 
 
 /* get_filename: return pointer to copy of filename in the command buffer */
-char *
+static char *
 get_filename(void)
 {
 	static char *file = NULL;
@@ -988,7 +995,7 @@ get_filename(void)
 				return NULL;
 			if (n) printf("%s\n", shcmd + 1);
 			return shcmd;
-		} else if (n >= MAXPATHLEN) {
+		} else if (n >= PATH_MAX) {
 			seterrmsg("filename too long");
 			return  NULL;
 		}
@@ -999,17 +1006,17 @@ get_filename(void)
 		return  NULL;
 	}
 #endif
-	REALLOC(file, filesz, MAXPATHLEN, NULL);
+	REALLOC(file, filesz, PATH_MAX, NULL);
 	for (n = 0; *ibufp != '\n';)
 		file[n++] = *ibufp++;
 	file[n] = '\0';
-	return is_legal_filename(file) ? file : NULL;
+	return file;
 }
 
 
 /* get_shell_command: read a shell command from stdin; return substitution
    status */
-int
+static int
 get_shell_command(void)
 {
 	static char *buf = NULL;
@@ -1019,10 +1026,7 @@ get_shell_command(void)
 	int i = 0;
 	int j = 0;
 
-	if (red) {
-		seterrmsg("shell access restricted");
-		return ERR;
-	} else if ((s = ibufp = get_extended_line(&j, 1)) == NULL)
+	if ((s = ibufp = get_extended_line(&j, 1)) == NULL)
 		return ERR;
 	REALLOC(buf, n, j + 1, ERR);
 	buf[i++] = '!';			/* prefix command w/ bang */
@@ -1075,7 +1079,7 @@ get_shell_command(void)
 
 /* append_lines: insert text from stdin to after line n; stop when either a
    single period is read or EOF; return status */
-int
+static int
 append_lines(int n)
 {
 	int l;
@@ -1124,7 +1128,7 @@ append_lines(int n)
 
 
 /* join_lines: replace a range of lines with the joined text of those lines */
-int
+static int
 join_lines(int from, int to)
 {
 	static char *buf = NULL;
@@ -1161,7 +1165,7 @@ join_lines(int from, int to)
 
 
 /* move_lines: move a range of lines */
-int
+static int
 move_lines(int addr)
 {
 	line_t *b1, *a1, *b2, *a2;
@@ -1205,7 +1209,7 @@ move_lines(int addr)
 
 
 /* copy_lines: copy a range of lines; return status */
-int
+static int
 copy_lines(int addr)
 {
 	line_t *lp, *np = get_addressed_line_node(first_addr);
@@ -1291,11 +1295,11 @@ display_lines(int from, int to, int gflag)
 
 #define MAXMARK 26			/* max number of marks */
 
-line_t	*mark[MAXMARK];			/* line markers */
-int markno;				/* line marker count */
+static line_t *mark[MAXMARK];		/* line markers */
+static int markno;			/* line marker count */
 
 /* mark_line_node: set a line node mark */
-int
+static int
 mark_line_node(line_t *lp, int n)
 {
 	if (!islower(n)) {
@@ -1309,7 +1313,7 @@ mark_line_node(line_t *lp, int n)
 
 
 /* get_marked_node_addr: return address of a marked line */
-int
+static int
 get_marked_node_addr(int n)
 {
 	if (!islower(n)) {
@@ -1335,12 +1339,12 @@ unmark_line_node(line_t *lp)
 
 
 /* dup_line_node: return a pointer to a copy of a line node */
-line_t *
+static line_t *
 dup_line_node(line_t *lp)
 {
 	line_t *np;
 
-	if ((np = (line_t *) malloc(sizeof(line_t))) == NULL) {
+	if ((np = malloc(sizeof(line_t))) == NULL) {
 		perror(NULL);
 		seterrmsg("out of memory");
 		return NULL;
@@ -1360,7 +1364,7 @@ has_trailing_escape(char *s, char *t)
 }
 
 
-/* strip_escapes: return copy of escaped string of at most length MAXPATHLEN */
+/* strip_escapes: return copy of escaped string of at most length PATH_MAX */
 char *
 strip_escapes(const char *s)
 {
@@ -1369,12 +1373,12 @@ strip_escapes(const char *s)
 
 	int i = 0;
 
-	REALLOC(file, filesz, MAXPATHLEN, NULL);
+	REALLOC(file, filesz, PATH_MAX, NULL);
 	/* assert: no trailing escape */
 	while ((file[i++] = (*s == '\\') ? *++s : *s) != '\0' &&
-	       i < MAXPATHLEN-1)
+	       i < PATH_MAX-1)
 		s++;
-	file[MAXPATHLEN-1] = '\0';
+	file[PATH_MAX-1] = '\0';
 	return file;
 }
 
@@ -1385,7 +1389,7 @@ signal_hup(int signo)
 	int save_errno = errno;
 
 	if (mutex)
-		sigflags |= (1 << (signo - 1));
+		sighup = 1;
 	else
 		handle_hup(signo);
 	errno = save_errno;
@@ -1398,7 +1402,7 @@ signal_int(int signo)
 	int save_errno = errno;
 
 	if (mutex)
-		sigflags |= (1 << (signo - 1));
+		sigint = 1;
 	else
 		handle_int(signo);
 	errno = save_errno;
@@ -1406,13 +1410,13 @@ signal_int(int signo)
 
 
 void
-handle_hup(int signo)
+handle_hup(int signo __attribute__((__unused__)))
 {
-	char hup[MAXPATHLEN];
+	char hup[PATH_MAX];
 
 	if (!sigactive)
-		quit(1);
-	sigflags &= ~(1 << (signo - 1));
+		quit(1);		/* XXX signal race */
+	sighup = 0;
 	/* XXX signal race */
 	if (addr_last && write_file("ed.hup", "w", 1, addr_last) < 0 &&
 	    home != NULL && home[0] == '/') {
@@ -1425,27 +1429,22 @@ handle_hup(int signo)
 
 
 void
-handle_int(int signo)
+handle_int(int signo __attribute__((__unused__)))
 {
 	if (!sigactive)
 		_exit(1);
-	sigflags &= ~(1 << (signo - 1));
-#ifdef _POSIX_SOURCE
+	sigint = 0;
 	siglongjmp(env, -1);
-#else
-	longjmp(env, -1);
-#endif
 }
 
 
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
 void
-handle_winch(int signo)
+handle_winch(int signo __attribute__((__unused__)))
 {
 	int save_errno = errno;
 	struct winsize ws;		/* window size structure */
 
-	sigflags &= ~(1 << (signo - 1));
 	if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) >= 0) {
 		if (ws.ws_row > 2)
 			rows = ws.ws_row - 2;
@@ -1455,15 +1454,3 @@ handle_winch(int signo)
 	errno = save_errno;
 }
 #endif
-
-
-/* is_legal_filename: return a legal filename */
-int
-is_legal_filename(char *s)
-{
-	if (red && (*s == '!' || !strcmp(s, "..") || strchr(s, '/'))) {
-		seterrmsg("shell access restricted");
-		return 0;
-	}
-	return 1;
-}

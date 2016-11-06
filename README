@@ -9,10 +9,10 @@ If reliable signals are supported (e.g., POSIX sigaction(2)), it should
 compile with little trouble.  Otherwise, the macros SPL1() and SPL0()
 should be redefined to disable interrupts.
 
-The following compiler directive is recognized:
+The following compiler directive is recognised:
 BACKWARDS	- for backwards compatibility
 
-The file `POSIX' describes extensions to and deviations from the POSIX
+The file 'POSIX' describes extensions to and deviations from the POSIX
 standard.
 
 The ./test directory contains regression tests for ed. The README

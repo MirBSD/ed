@@ -1,10 +1,11 @@
+$MirOS: src/bin/ed/test/README,v 1.2 2016/11/06 18:58:45 tg Exp $
 $OpenBSD: README,v 1.2 1996/06/23 14:20:06 deraadt Exp $
 $NetBSD: README,v 1.8 1995/03/21 09:05:18 cgd Exp $
 
-The files in this directory with suffixes `.t', `.d', `.r' and `.err' are
+The files in this directory with suffixes '.t', '.d', '.r' and '.err' are
 used for testing ed.  To run the tests, set the ED variable in the Makefile
 for the path name of the program to be tested (e.g., /bin/ed), and type
-`make'.  The tests do not exhaustively verify POSIX compliance nor do
+'make'.  The tests do not exhaustively verify POSIX compliance nor do
 they verify correct 8-bit or long line support.
 
 The test file suffixes have the following meanings:
