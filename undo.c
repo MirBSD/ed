@@ -1,4 +1,4 @@
-/*	$OpenBSD: undo.c,v 1.10 2009/10/27 23:59:21 deraadt Exp $	*/
+/*	$OpenBSD: undo.c,v 1.14 2016/03/22 17:58:28 mmcc Exp $	*/
 /*	$NetBSD: undo.c,v 1.2 1995/03/21 09:04:52 cgd Exp $	*/
 
 /* undo.c: This file contains the undo routines for the ed line editor */
@@ -28,13 +28,17 @@
  * SUCH DAMAGE.
  */
 
+#include <regex.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "ed.h"
 
-
 #define USIZE 100				/* undo stack size */
-undo_t *ustack = NULL;				/* undo stack */
-int usize = 0;					/* stack size variable */
-int u_p = 0;					/* undo stack pointer */
+static undo_t *ustack = NULL;			/* undo stack */
+static int usize = 0;				/* stack size variable */
+static int u_p = 0;				/* undo stack pointer */
 
 /* push_undo_stack: return pointer to initialized undo node */
 undo_t *
@@ -42,17 +46,9 @@ push_undo_stack(int type, int from, int to)
 {
 	undo_t *t;
 
-#if defined(sun) || defined(NO_REALLOC_NULL)
-	if (ustack == NULL &&
-	    (ustack = (undo_t *) calloc((usize = USIZE), sizeof(undo_t))) == NULL) {
-		perror(NULL);
-		seterrmsg("out of memory");
-		return NULL;
-	}
-#endif
 	t = ustack;
 	if (u_p < usize ||
-	    (t = (undo_t *) realloc(ustack, (usize += USIZE) * sizeof(undo_t))) != NULL) {
+	    (t = reallocarray(ustack, (usize += USIZE), sizeof(undo_t))) != NULL) {
 		ustack = t;
 		ustack[u_p].type = type;
 		ustack[u_p].t = get_addressed_line_node(to);
