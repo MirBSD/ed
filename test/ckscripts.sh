@@ -1,4 +1,5 @@
 #!/bin/mksh
+#	$MirOS: src/bin/ed/test/ckscripts.sh,v 1.3 2016/11/06 19:55:04 tg Exp $
 #	$OpenBSD: ckscripts.sh,v 1.3 1998/07/12 03:49:08 todd Exp $
 #	$NetBSD: ckscripts.sh,v 1.9 1995/04/23 10:07:34 cgd Exp $
 #
@@ -35,4 +36,4 @@ for i in *.ed; do
 	fi
 done >scripts.o 2>&1
 
-grep -h '\*\*\*' errs.o scripts.o
+test -n "$2" || grep -h '\*\*\*' errs.o scripts.o
