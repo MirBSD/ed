@@ -58,11 +58,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef __dietlibc__
+#include <termios.h>
+#endif
 #include <unistd.h>
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.10 2016/11/06 18:58:44 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.11 2016/11/27 15:09:40 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
