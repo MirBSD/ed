@@ -1,4 +1,4 @@
-$MirOS: src/bin/ed/test/README,v 1.4 2016/11/06 20:24:52 tg Exp $
+$MirOS: src/bin/ed/test/README,v 1.5 2017/04/02 16:46:27 tg Exp $
 $OpenBSD: README,v 1.2 1996/06/23 14:20:06 deraadt Exp $
 $NetBSD: README,v 1.8 1995/03/21 09:05:18 cgd Exp $
 
@@ -25,6 +25,9 @@ or:
 
 A recent POSIX change allows 0i, making the following testcase fail:
 * i3.red
+
+A recent POSIX change allows ,n as abbreviation for 1,n failing:
+* nl.red
 
 The POSIX requirement that an address range not be used where at most
 a single address is expected has been relaxed in this version of ed.
