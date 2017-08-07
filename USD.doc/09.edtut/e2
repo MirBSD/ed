@@ -161,7 +161,7 @@ Try both.)
 Reading text from a file \- the Edit command ``e''
 .PP
 A common way to get text into the buffer is to read it
-from a file in the file system.
+from a file in the filesystem.
 This is what you do to edit text
 that you saved with the 
 .UL w
