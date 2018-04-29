@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.13 2018/04/29 18:17:37 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.14 2018/04/29 18:22:25 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -273,13 +273,13 @@ top:
 			}
 			break;
 		case FATAL:
-			if (!interactive) {
-				if (garrulous)
+			if (garrulous) {
+				if (!interactive)
 					fprintf(stderr,
-					    "script, line %d: %s\n",
-					    lineno, errmsg);
-			} else if (garrulous)
+					    "script, line %d: ",
+					    lineno);
 				fprintf(stderr, "%s\n", errmsg);
+			}
 			quit(3);
 			break;
 		default:
