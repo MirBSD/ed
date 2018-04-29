@@ -1,5 +1,5 @@
-$MirOS: src/bin/ed/test/README,v 1.5 2017/04/02 16:46:27 tg Exp $
-$OpenBSD: README,v 1.2 1996/06/23 14:20:06 deraadt Exp $
+$MirOS: src/bin/ed/test/README,v 1.6 2018/04/29 18:17:38 tg Exp $
+$OpenBSD: README,v 1.3 2018/01/09 00:43:10 bluhm Exp $
 $NetBSD: README,v 1.8 1995/03/21 09:05:18 cgd Exp $
 
 The files in this directory with suffixes '.t', '.d', '.r' and '.err' are
@@ -33,8 +33,8 @@ The POSIX requirement that an address range not be used where at most
 a single address is expected has been relaxed in this version of ed.
 Therefore, the following scripts which test for compliance with this
 POSIX rule exit abnormally (BSD ed as well as GNU ed):
-* =.red
 * a1.red
+* eq.red
 * i1.red
 * k1.red
 * r1.red

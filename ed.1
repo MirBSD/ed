@@ -1,5 +1,5 @@
-.\"	$MirOS: src/bin/ed/ed.1,v 1.8 2016/11/06 18:58:43 tg Exp $
-.\"	$OpenBSD: ed.1,v 1.68 2016/09/23 06:17:43 jmc Exp $
+.\"	$MirOS: src/bin/ed/ed.1,v 1.9 2018/04/29 18:17:37 tg Exp $
+.\"	$OpenBSD: ed.1,v 1.70 2018/04/26 12:18:54 martijn Exp $
 .\"
 .\" Copyright (c) 1993 Andrew Moore, Talke Studio.
 .\" All rights reserved.
@@ -84,7 +84,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: November 6 2016 $
+.Dd $Mdocdate: April 29 2018 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -401,7 +401,7 @@ The search wraps to the beginning of the buffer and continues down to the
 current line, if necessary.
 .Qq //
 repeats the last search.
-.It ? Ns Ar re Ns ?
+.It Pf ? Ar re ?
 The previous line containing the regular expression
 .Ar re .
 The search wraps to the end of the buffer and continues up to the
@@ -951,19 +951,6 @@ additionally, it says behaviour for the
 .Fl
 option is
 .Dq unspecified .
-.Pp
-The
-.St -p1003.1-2008
-specification says the
-.Ic l
-command should mark the ends of lines with a
-.Sq $
-character,
-and that
-.Sq $
-characters
-within the text should be output preceded by a backslash;
-this implementation does not support that.
 .Sh HISTORY
 An
 .Nm

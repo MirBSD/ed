@@ -1,4 +1,4 @@
-/*	$OpenBSD: io.c,v 1.19 2016/03/22 17:58:28 mmcc Exp $	*/
+/*	$OpenBSD: io.c,v 1.21 2018/04/26 12:18:54 martijn Exp $	*/
 /*	$NetBSD: io.c,v 1.2 1995/03/21 09:04:43 cgd Exp $	*/
 
 /* io.c: This file contains the i/o routines for the ed line editor */
@@ -36,7 +36,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/io.c,v 1.6 2016/11/06 18:58:44 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.7 2018/04/29 18:17:37 tg Exp $");
 
 static int read_stream(FILE *, int);
 static int get_stream_line(FILE *);
@@ -65,7 +65,8 @@ read_file(char *fn, int n)
 		seterrmsg("cannot close input file");
 		return ERR;
 	}
-	fprintf(stderr, !scripted ? "%d\n" : "", size);
+	if (!scripted)
+		fprintf(stderr, "%d\n", size);
 	return current_addr - n;
 }
 
@@ -166,7 +167,8 @@ write_file(const char *fn, const char *mode, int n, int m)
 		seterrmsg("cannot close output file");
 		return ERR;
 	}
-	fprintf(stderr, !scripted ? "%d\n" : "", size);
+	if (!scripted)
+		fprintf(stderr, "%d\n", size);
 	return n ? m - n + 1 : 0;
 }
 
@@ -295,8 +297,8 @@ get_tty_line(void)
 
 
 
-#define ESCAPES "\a\b\f\n\r\t\v\\"
-#define ESCCHARS "abfnrtv\\"
+#define ESCAPES "\a\b\f\n\r\t\v\\$"
+#define ESCCHARS "abfnrtv\\$"
 
 extern int rows;
 extern int cols;
@@ -330,7 +332,7 @@ put_tty_line(char *s, int l, int n, int gflag)
 #endif
 		}
 		if (gflag & GLS) {
-			if (31 < *s && *s < 127 && *s != '\\')
+			if (31 < *s && *s < 127 && *s != '\\' && *s != '$')
 				putchar(*s);
 			else {
 				putchar('\\');
@@ -348,10 +350,8 @@ put_tty_line(char *s, int l, int n, int gflag)
 		} else
 			putchar(*s);
 	}
-#ifndef BACKWARDS
 	if (gflag & GLS)
 		putchar('$');
-#endif
 	putchar('\n');
 	return 0;
 }

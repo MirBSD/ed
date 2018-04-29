@@ -1,4 +1,4 @@
-/*	$OpenBSD: glbl.c,v 1.18 2016/03/22 17:58:28 mmcc Exp $	*/
+/*	$OpenBSD: glbl.c,v 1.19 2017/04/26 21:25:43 naddy Exp $	*/
 /*	$NetBSD: glbl.c,v 1.2 1995/03/21 09:04:41 cgd Exp $	*/
 
 /* glob.c: This file contains the global command routines for the ed line
@@ -40,7 +40,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.4 2016/11/06 19:42:54 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.5 2018/04/29 18:17:37 tg Exp $");
 
 static int set_active_node(line_t *);
 static line_t *next_active_node(void);

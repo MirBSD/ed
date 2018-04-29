@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.59 2017/01/03 20:24:29 tb Exp $	*/
+/*	$OpenBSD: main.c,v 1.61 2018/02/26 17:35:08 martijn Exp $	*/
 /*	$NetBSD: main.c,v 1.3 1995/03/21 09:04:44 cgd Exp $	*/
 
 /* main.c: This file contains the main control and user-interface routines
@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.12 2017/04/02 16:46:26 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.13 2018/04/29 18:17:37 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -230,9 +230,10 @@ top:
 				fputs("?\n", stderr);
 				seterrmsg("warning: file modified");
 				if (!interactive) {
-					fprintf(stderr, garrulous ?
-					    "script, line %d: %s\n" :
-					    "", lineno, errmsg);
+					if (garrulous)
+						fprintf(stderr,
+						    "script, line %d: %s\n",
+						    lineno, errmsg);
 					quit(2);
 				}
 				clearerr(stdin);
@@ -264,28 +265,30 @@ top:
 			fputs("?\n", stderr);		/* give warning */
 			seterrmsg("warning: file modified");
 			if (!interactive) {
-				fprintf(stderr, garrulous ?
-				    "script, line %d: %s\n" :
-				    "", lineno, errmsg);
+				if (garrulous)
+					fprintf(stderr,
+					    "script, line %d: %s\n",
+					    lineno, errmsg);
 				quit(2);
 			}
 			break;
 		case FATAL:
-			if (!interactive)
-				fprintf(stderr, garrulous ?
-				    "script, line %d: %s\n" : "",
-				    lineno, errmsg);
-			else
-				fprintf(stderr, garrulous ? "%s\n" : "",
-				    errmsg);
+			if (!interactive) {
+				if (garrulous)
+					fprintf(stderr,
+					    "script, line %d: %s\n",
+					    lineno, errmsg);
+			} else if (garrulous)
+				fprintf(stderr, "%s\n", errmsg);
 			quit(3);
 			break;
 		default:
 			fputs("?\n", stderr);
 			if (!interactive) {
-				fprintf(stderr, garrulous ?
-				    "script, line %d: %s\n" : "",
-				    lineno, errmsg);
+				if (garrulous)
+					fprintf(stderr,
+					    "script, line %d: %s\n",
+					    lineno, errmsg);
 				quit(2);
 			}
 			break;
@@ -732,7 +735,7 @@ exec_command(void)
 		if ((addr = read_file(*fnp ? fnp : old_filename,
 		    second_addr)) < 0)
 			return ERR;
-		else if (addr && addr != addr_last)
+		else if (addr)
 			modified = 1;
 		break;
 	case 's':
