@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.14 2018/04/29 18:22:25 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.15 2018/07/04 01:14:06 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -179,10 +179,11 @@ top:
 		if (fstat(STDIN_FILENO, &sb) || !S_ISFIFO(sb.st_mode)) {
 			if (lseek(STDIN_FILENO, (off_t)0, SEEK_CUR)) {
 				interactive = 1;
-				setvbuf(stdout, NULL, _IOLBF, 0);
 			}
 		}
 	}
+	if (interactive)
+		setvbuf(stdout, NULL, _IOLBF, 0);
 
 	/* assert: reliable signals! */
 #if defined(SIGWINCH) && defined(TIOCGWINSZ)
