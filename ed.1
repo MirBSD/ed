@@ -1,4 +1,4 @@
-.\"	$MirOS: src/bin/ed/ed.1,v 1.10 2018/12/25 19:38:06 tg Exp $
+.\"	$MirOS: src/bin/ed/ed.1,v 1.11 2020/09/04 22:36:59 tg Exp $
 .\"	$OpenBSD: ed.1,v 1.70 2018/04/26 12:18:54 martijn Exp $
 .\"
 .\" Copyright (c) 1993 Andrew Moore, Talke Studio.
@@ -35,7 +35,8 @@
 .\"   thus use - for hyphens and \- for minus signs and option dashes
 .\" * ~ is size-reduced and placed atop in groff, so use \*(TI
 .\" * ^ is size-reduced and placed atop in groff, so use \*(ha
-.\" * \(en does not work in nroff, so use \*(en
+.\" * \(en does not work in nroff, so use \*(en for a solo en dash
+.\" *   and \*(EM for a correctly spaced em dash
 .\" * <>| are problematic, so redefine and use \*(Lt\*(Gt\*(Ba
 .\" Also make sure to use \& *before* a punctuation char that is to not
 .\" be interpreted as punctuation, and especially with two-letter words
@@ -69,6 +70,12 @@
 .	ds ha ^
 .	ds en \(em
 .\}
+.ie n \{\
+.	ds EM \ \*(en\ \&
+.\}
+.el \{\
+.	ds EM \f(TR\^\(em\^\fP
+.\}
 .\"
 .\" Implement .Dd with the Mdocdate RCS keyword
 .\"
@@ -84,7 +91,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: December 25 2018 $
+.Dd $Mdocdate: September 4 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
