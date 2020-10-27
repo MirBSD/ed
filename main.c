@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.24 2020/10/27 07:25:35 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.25 2020/10/27 07:45:35 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -477,7 +477,10 @@ edGET_COMMAND_SUFFIX(int *gflagp)
 	GET_COMMAND_SUFFIXimpl((*gflagp), g);
 	return (0);
 }
-#define GET_COMMAND_SUFFIX() edGET_COMMAND_SUFFIX(&gflag)
+#define GET_COMMAND_SUFFIX() do {			\
+	if (edGET_COMMAND_SUFFIX(&gflag))		\
+		return (ERR);				\
+} while (/* CONSTCOND */ 0)
 #else
 #define GET_COMMAND_SUFFIXindir(l) GET_COMMAND_SUFFIXimpl(gflag, l)
 #define GET_COMMAND_SUFFIX() GET_COMMAND_SUFFIXindir(__LINE__)
