@@ -40,7 +40,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.6 2020/10/27 02:48:12 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.7 2020/10/27 04:35:55 tg Exp $");
 
 static int set_active_node(line_t *);
 static line_t *next_active_node(void);
@@ -68,7 +68,7 @@ build_active_list(int isgcmd)
 		if ((s = get_sbuf_line(lp)) == NULL)
 			return ERR;
 		if (isbinary)
-			NUL_TO_NEWLINE(s, lp->len);
+			NUL_TO_NEWLINE(s, lp->llen);
 		if ((!regexec(pat, s, 0, NULL, 0)) == isgcmd &&
 		    set_active_node(lp) < 0)
 			return ERR;

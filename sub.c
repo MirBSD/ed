@@ -190,14 +190,14 @@ substitute_matching_text(regex_t *pat, line_t *lp, int gflag, int kth)
 	if ((eom = txt = get_sbuf_line(lp)) == NULL)
 		return ERR;
 	if (isbinary)
-		NUL_TO_NEWLINE(txt, lp->len);
-	eot = txt + lp->len;
+		NUL_TO_NEWLINE(txt, lp->llen);
+	eot = txt + lp->llen;
 	if (!regexec(pat, txt, SE_MAX, rm, 0)) {
 		do {
 /* Don't do a 0-length match directly after a non-0-length */
 			if (rm[0].rm_eo == nempty) {
 				rm[0].rm_so++;
-				rm[0].rm_eo = lp->len;
+				rm[0].rm_eo = lp->llen;
 				continue;
 			}
 			if (!kth || kth == ++matchno) {
@@ -220,8 +220,8 @@ substitute_matching_text(regex_t *pat, line_t *lp, int gflag, int kth)
 				rm[0].rm_so = rm[0].rm_eo + 1;
 			else
 				nempty = rm[0].rm_so = rm[0].rm_eo;
-			rm[0].rm_eo = lp->len;
-		} while (rm[0].rm_so < lp->len && (gflag & GSG || kth) &&
+			rm[0].rm_eo = lp->llen;
+		} while (rm[0].rm_so < lp->llen && (gflag & GSG || kth) &&
 		    !regexec(pat, txt, SE_MAX, rm, REG_STARTEND | REG_NOTBOL));
 		i = eot - eom;
 		REALLOC(rbuf, rbufsz, off + i + 2, ERR);

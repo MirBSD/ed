@@ -36,7 +36,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/io.c,v 1.8 2020/10/27 02:48:12 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.9 2020/10/27 04:35:55 tg Exp $");
 
 static int read_stream(FILE *, int);
 static int get_stream_line(FILE *);
@@ -184,7 +184,7 @@ write_stream(FILE *fp, int n, int m)
 	for (; n && n <= m; n++, lp = lp->q_forw) {
 		if ((s = get_sbuf_line(lp)) == NULL)
 			return ERR;
-		len = lp->len;
+		len = lp->llen;
 		if (n != addr_last || !isbinary || !newline_added)
 			s[len++] = '\n';
 		if (put_stream_line(fp, s, len) < 0)

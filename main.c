@@ -4,7 +4,7 @@
 /* main.c: This file contains the main control and user-interface routines
    for the ed line editor. */
 /*-
- * Copyright (c) 2003, 2004, 2005, 2008, 2009, 2011, 2012, 2016
+ * Copyright (c) 2003, 2004, 2005, 2008, 2009, 2011, 2012, 2016, 2020
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 1993 Andrew Moore, Talke Studio.
  * All rights reserved.
@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.16 2020/10/27 02:48:12 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.17 2020/10/27 04:35:55 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -916,7 +916,7 @@ get_matching_node_addr(regex_t *pat, int dir)
 			if ((s = get_sbuf_line(lp)) == NULL)
 				return ERR;
 			if (isbinary)
-				NUL_TO_NEWLINE(s, lp->len);
+				NUL_TO_NEWLINE(s, lp->llen);
 			if (!regexec(pat, s, 0, NULL, 0))
 				return n;
 		}
@@ -1096,9 +1096,9 @@ join_lines(int from, int to)
 	for (; bp != ep; bp = bp->q_forw) {
 		if ((s = get_sbuf_line(bp)) == NULL)
 			return ERR;
-		REALLOC(buf, n, size + bp->len, ERR);
-		memcpy(buf + size, s, bp->len);
-		size += bp->len;
+		REALLOC(buf, n, size + bp->llen, ERR);
+		memcpy(buf + size, s, bp->llen);
+		size += bp->llen;
 	}
 	REALLOC(buf, n, size + 2, ERR);
 	memcpy(buf + size, "\n", 2);
@@ -1239,7 +1239,7 @@ display_lines(int from, int to, int gflag)
 	for (; bp != ep; bp = bp->q_forw) {
 		if ((s = get_sbuf_line(bp)) == NULL)
 			return ERR;
-		if (put_tty_line(s, bp->len, current_addr = from++, gflag) < 0)
+		if (put_tty_line(s, bp->llen, current_addr = from++, gflag) < 0)
 			return ERR;
 	}
 	return 0;
@@ -1303,7 +1303,7 @@ dup_line_node(line_t *lp)
 		return NULL;
 	}
 	np->adr = lp->adr;
-	np->len = lp->len;
+	np->llen = lp->llen;
 	return np;
 }
 

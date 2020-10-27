@@ -4,7 +4,7 @@
 /* buf.c: This file contains the scratch-file buffer routines for the
    ed line editor. */
 /*-
- * Copyright (c) 2011, 2012
+ * Copyright (c) 2011, 2012, 2020
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 1993 Andrew Moore, Talke Studio.
  * All rights reserved.
@@ -44,7 +44,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/buf.c,v 1.6 2020/10/27 02:48:11 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/buf.c,v 1.7 2020/10/27 04:35:54 tg Exp $");
 
 static FILE *sfp;			/* scratch file pointer */
 static tp_ftell sfpos;			/* scratch file position */
@@ -72,7 +72,7 @@ get_sbuf_line(line_t *lp)
 			return NULL;
 		}
 	}
-	len = lp->len;
+	len = lp->llen;
 	REALLOC(sfbuf, sfbufsz, len + 1, NULL);
 	if (fread(sfbuf, sizeof(char), len, sfp) != len) {
 		perror(NULL);
@@ -127,7 +127,7 @@ put_sbuf_line(char *cs)
 		free(lp);
 		return NULL;
 	}
-	lp->len = len;
+	lp->llen = len;
 	lp->adr = sfpos;
 	add_line_node(lp);
 	sfpos += len;			/* update file position */

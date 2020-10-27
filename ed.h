@@ -1,10 +1,10 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.11 2016/11/06 19:36:02 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.12 2020/10/27 04:35:55 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.22 2016/03/27 00:43:38 mmcc Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
 /* ed.h: type and constant definitions for the ed editor. */
 /*
- * Copyright © 2013, 2016
+ * Copyright (c) 2013, 2016, 2020
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 1993 Andrew Moore
  * All rights reserved.
@@ -72,11 +72,11 @@ void *reallocarray(void *, size_t, size_t);
 #define GSG 020		/* global substitute */
 
 /* Line node */
-typedef struct	line {
+typedef struct line {
 	struct line	*q_forw;
 	struct line	*q_back;
 	tp_ftell	adr;		/* address of line in scratch buffer */
-	int		len;		/* length of line */
+	int		llen;		/* length of line */
 } line_t;
 
 
