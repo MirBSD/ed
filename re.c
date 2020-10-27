@@ -37,10 +37,12 @@
 
 #include "ed.h"
 
+__RCSID("$MirOS: src/bin/ed/re.c,v 1.2 2020/10/27 05:54:18 tg Exp $");
+
 static char *extract_pattern(int);
 static char *parse_char_class(char *);
 
-extern int patlock;
+extern edbool patlock;
 
 
 /* get_compiled_pattern: return pointer to compiled pattern from command

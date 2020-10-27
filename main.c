@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.18 2020/10/27 04:47:08 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.19 2020/10/27 05:54:18 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -90,22 +90,22 @@ sigjmp_buf env;
 /* static buffers */
 static char errmsg[PATH_MAX + 40];	/* error message buffer */
 static char *shcmd;		/* shell command buffer */
-static int shcmdsz;		/* shell command buffer size */
-static int shcmdi;		/* shell command buffer index */
+static size_t shcmdsz;		/* shell command buffer size */
+static size_t shcmdi;		/* shell command buffer index */
 static char old_filename[PATH_MAX];	/* default filename */
 
 /* global buffers */
 char *ibuf;			/* ed command-line buffer */
-int ibufsz;			/* ed command-line buffer size */
+size_t ibufsz;			/* ed command-line buffer size */
 char *ibufp;			/* pointer to ed command-line buffer */
 
 /* global flags */
-int garrulous = 0;		/* if set, print all error messages */
-int isbinary;			/* if set, buffer contains ASCII NULs */
-int isglobal;			/* if set, doing a global command */
-int modified;			/* if set, buffer modified since last write */
-int scripted = 0;		/* if set, suppress diagnostics */
-int interactive = 0;		/* if set, we are in interactive mode */
+static edbool garrulous = 0;	/* if set, print all error messages */
+edbool isbinary;		/* if set, buffer contains ASCII NULs */
+edbool isglobal;		/* if set, doing a global command */
+edbool modified;		/* if set, buffer modified since last write */
+edbool scripted = 0;		/* if set, suppress diagnostics */
+edbool interactive = 0;		/* if set, we are in interactive mode */
 
 volatile sig_atomic_t mutex = 0;  /* if set, signals set flags */
 volatile sig_atomic_t sighup = 0; /* if set, sighup received while mutex set */
@@ -134,7 +134,8 @@ seterrmsg(const char *s)
 int
 main(volatile int argc, char ** volatile argv)
 {
-	int c, n;
+	int c;
+	ssize_t n;
 	volatile int status = 0;
 
 #if defined(__OpenBSD__) && !defined(__MirBSD__)
@@ -144,7 +145,7 @@ main(volatile int argc, char ** volatile argv)
 
 	home = getenv("HOME");
 
-top:
+ top:
 	while ((c = getopt(argc, argv, "p:sx")) != -1)
 		switch (c) {
 		case 'p':				/* set prompt */
@@ -473,7 +474,7 @@ next_addr(void)
 #define SGR 004		/* use last regex instead of last pat */
 #define SGF 010		/* repeat last substitution */
 
-int patlock = 0;	/* if set, pattern not freed by get_compiled_pattern() */
+edbool patlock = 0;	/* if set, pattern not freed by get_compiled_pattern() */
 
 volatile sig_atomic_t rows = 22;	/* scroll length: ws_row - 2 */
 volatile sig_atomic_t cols = 72;	/* wrap column */
@@ -581,7 +582,7 @@ exec_command(void)
 			return ERR;
 		else if ((n = (c == 'G' || c == 'V')))
 			GET_COMMAND_SUFFIX();
-		isglobal++;
+		isglobal = 1;
 		if (exec_global(n, gflag) < 0)
 			return ERR;
 		break;
@@ -932,7 +933,7 @@ get_filename(int save)
 {
 	static char filename[PATH_MAX];
 	char *p;
-	int n;
+	ssize_t n;
 
 	if (*ibufp != '\n') {
 		SKIP_BLANKS();
@@ -973,27 +974,27 @@ static int
 get_shell_command(void)
 {
 	static char *buf = NULL;
-	static int n = 0;
+	static size_t n = 0;
 
 	char *s;			/* substitution char pointer */
-	int i = 0;
-	int j = 0;
+	ssize_t i = 0;
+	ssize_t j = 0;
 
 	if ((s = ibufp = get_extended_line(&j, 1)) == NULL)
 		return ERR;
-	REALLOC(buf, n, j + 1, ERR);
+	REALLOC(buf, n, (size_t)j + 1U, ERR);
 	buf[i++] = '!';			/* prefix command w/ bang */
 	while (*ibufp != '\n')
 		switch (*ibufp) {
 		default:
-			REALLOC(buf, n, i + 2, ERR);
+			REALLOC(buf, n, (size_t)i + 2U, ERR);
 			buf[i++] = *ibufp;
 			if (*ibufp++ == '\\')
 				buf[i++] = *ibufp++;
 			break;
 		case '!':
 			if (s != ibufp) {
-				REALLOC(buf, n, i + 1, ERR);
+				REALLOC(buf, n, (size_t)i + 1U, ERR);
 				buf[i++] = *ibufp++;
 			}
 			else if (shcmd == NULL)
@@ -1013,7 +1014,7 @@ get_shell_command(void)
 				return ERR;
 			}
 			j = strlen(s = strip_escapes(old_filename));
-			REALLOC(buf, n, i + j, ERR);
+			REALLOC(buf, n, (size_t)i + (size_t)j, ERR);
 			while (j--)
 				buf[i++] = *s++;
 			s = ibufp++;
@@ -1023,7 +1024,7 @@ get_shell_command(void)
 		seterrmsg("no command");
 		return ERR;
 	}
-	REALLOC(shcmd, shcmdsz, i + 1, ERR);
+	REALLOC(shcmd, shcmdsz, (size_t)i + 1, ERR);
 	memcpy(shcmd, buf, i);
 	shcmd[shcmdi = i] = '\0';
 	return *s == '!' || *s == '%';
@@ -1249,7 +1250,7 @@ display_lines(int from, int to, int gflag)
 #define MAXMARK 26			/* max number of marks */
 
 static line_t *mark[MAXMARK];		/* line markers */
-static int markno;			/* line marker count */
+static unsigned char markno;		/* line marker count */
 
 /* mark_line_node: set a line node mark */
 static int
@@ -1321,12 +1322,10 @@ has_trailing_escape(char *s, char *t)
 char *
 strip_escapes(const char *s)
 {
-	static char *file = NULL;
-	static int filesz = 0;
+	static char file[PATH_MAX];
 
 	int i = 0;
 
-	REALLOC(file, filesz, PATH_MAX, NULL);
 	/* assert: no trailing escape */
 	while ((file[i++] = (*s == '\\') ? *++s : *s) != '\0' &&
 	       i < PATH_MAX-1)

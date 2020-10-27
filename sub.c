@@ -38,13 +38,15 @@
 
 #include "ed.h"
 
+__RCSID("$MirOS: src/bin/ed/sub.c,v 1.3 2020/10/27 05:54:19 tg Exp $");
+
 static char *extract_subst_template(void);
 static int substitute_matching_text(regex_t *, line_t *, int, int);
 static int apply_subst_template(char *, regmatch_t *, int, int);
 
 static char *rhbuf;		/* rhs substitution buffer */
-static int rhbufsz;		/* rhs substitution buffer size */
-static int rhbufi;		/* rhs substitution buffer index */
+static size_t rhbufsz;		/* rhs substitution buffer size */
+static size_t rhbufi;		/* rhs substitution buffer index */
 
 /* extract_subst_tail: extract substitution tail from the command buffer */
 int
@@ -81,8 +83,8 @@ extract_subst_tail(int *flagp, int *np)
 static char *
 extract_subst_template(void)
 {
-	int n = 0;
-	int i = 0;
+	ssize_t n = 0;
+	size_t i = 0;
 	char c;
 	char delimiter = *ibufp++;
 
@@ -116,7 +118,7 @@ extract_subst_template(void)
 
 
 static char *rbuf;		/* substitute_matching_text buffer */
-static int rbufsz;		/* substitute_matching_text buffer size */
+static size_t rbufsz;		/* substitute_matching_text buffer size */
 
 /* search_and_replace: for each line in a range, change text matching a pattern
    according to a substitution template; return status  */
@@ -178,10 +180,10 @@ search_and_replace(regex_t *pat, int gflag, int kth)
 static int
 substitute_matching_text(regex_t *pat, line_t *lp, int gflag, int kth)
 {
-	int off = 0;
+	ssize_t off = 0;
 	int changed = 0;
 	int matchno = 0;
-	int i = 0;
+	ssize_t i = 0;
 	int nempty = -1;
 	regmatch_t rm[SE_MAX];
 	char *txt;
@@ -203,7 +205,7 @@ substitute_matching_text(regex_t *pat, line_t *lp, int gflag, int kth)
 			if (!kth || kth == ++matchno) {
 				changed = 1;
 				i = rm[0].rm_so - (eom - txt);
-				REALLOC(rbuf, rbufsz, off + i, ERR);
+				REALLOC(rbuf, rbufsz, (size_t)off + (size_t)i, ERR);
 				if (isbinary)
 					NEWLINE_TO_NUL(eom,
 					    rm[0].rm_eo - (eom - txt));
@@ -224,7 +226,7 @@ substitute_matching_text(regex_t *pat, line_t *lp, int gflag, int kth)
 		} while (rm[0].rm_so < lp->llen && (gflag & GSG || kth) &&
 		    !regexec(pat, txt, SE_MAX, rm, REG_STARTEND | REG_NOTBOL));
 		i = eot - eom;
-		REALLOC(rbuf, rbufsz, off + i + 2, ERR);
+		REALLOC(rbuf, rbufsz, (size_t)off + (size_t)i + 2U, ERR);
 		if (isbinary)
 			NEWLINE_TO_NUL(eom, i);
 		memcpy(rbuf + off, eom, i);
@@ -239,30 +241,30 @@ substitute_matching_text(regex_t *pat, line_t *lp, int gflag, int kth)
 static int
 apply_subst_template(char *boln, regmatch_t *rm, int off, int re_nsub)
 {
-	int j = 0;
-	int k = 0;
+	ssize_t j = 0;
+	ssize_t k = 0;
 	int n;
 	char *sub = rhbuf;
 
-	for (; sub - rhbuf < rhbufi; sub++)
+	for (; (size_t)(sub - rhbuf) < rhbufi; sub++)
 		if (*sub == '&') {
 			j = rm[0].rm_so;
 			k = rm[0].rm_eo;
-			REALLOC(rbuf, rbufsz, off + k - j, ERR);
+			REALLOC(rbuf, rbufsz, (size_t)off + (size_t)k - (size_t)j, ERR);
 			while (j < k)
 				rbuf[off++] = boln[j++];
 		} else if (*sub == '\\' && '1' <= *++sub && *sub <= '9' &&
 		    (n = *sub - '0') <= re_nsub) {
 			j = rm[n].rm_so;
 			k = rm[n].rm_eo;
-			REALLOC(rbuf, rbufsz, off + k - j, ERR);
+			REALLOC(rbuf, rbufsz, (size_t)off + (size_t)k - (size_t)j, ERR);
 			while (j < k)
 				rbuf[off++] = boln[j++];
 		} else {
-			REALLOC(rbuf, rbufsz, off + 1, ERR);
+			REALLOC(rbuf, rbufsz, (size_t)off + 1, ERR);
 			rbuf[off++] = *sub;
 		}
-	REALLOC(rbuf, rbufsz, off + 1, ERR);
+	REALLOC(rbuf, rbufsz, (size_t)off + 1, ERR);
 	rbuf[off] = '\0';
 	return off;
 }

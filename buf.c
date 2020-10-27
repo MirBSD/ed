@@ -45,7 +45,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/buf.c,v 1.9 2020/10/27 05:20:36 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/buf.c,v 1.10 2020/10/27 05:54:17 tg Exp $");
 
 static FILE *sfp;			/* scratch file pointer */
 static tp_ftell sfpos;			/* scratch file position */
@@ -199,7 +199,7 @@ get_addressed_line_node(int n)
 }
 
 
-extern int newline_added;
+extern edbool newline_added;
 
 static char *sfn;
 static char *sfn_template;

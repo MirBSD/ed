@@ -40,7 +40,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.7 2020/10/27 04:35:55 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.8 2020/10/27 05:54:18 tg Exp $");
 
 static int set_active_node(line_t *);
 static line_t *next_active_node(void);
@@ -88,7 +88,7 @@ exec_global(int interact, int gflag)
 
 	line_t *lp = NULL;
 	int status;
-	int n;
+	ssize_t n;
 	char *cmd = NULL;
 
 	if (!interact) {

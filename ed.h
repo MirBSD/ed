@@ -1,4 +1,4 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.15 2020/10/27 04:47:07 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.16 2020/10/27 05:54:18 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.22 2016/03/27 00:43:38 mmcc Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -36,6 +36,8 @@
 #include <limits.h>
 #include <regex.h>
 #include <signal.h>
+
+#define edbool unsigned char
 
 #ifdef NEED_STRLFUN_DECL
 size_t strlcat(char *, const char *, size_t);
@@ -178,10 +180,10 @@ int extract_addr_range(void);
 int extract_subst_tail(int *, int *);
 line_t *get_addressed_line_node(int);
 regex_t *get_compiled_pattern(void);
-char *get_extended_line(int *, int);
+char *get_extended_line(ssize_t *, int);
 int get_line_node_addr(line_t *);
 char *get_sbuf_line(line_t *);
-int get_tty_line(void);
+ssize_t get_tty_line(void);
 void handle_hup(int) __attribute__((__noreturn__));
 void handle_int(int) __attribute__((__noreturn__));
 int has_trailing_escape(char *, char *);
@@ -204,12 +206,12 @@ int write_file(const char *, const char *, int, int);
 /* global buffers */
 extern char *ibuf;
 extern char *ibufp;
-extern int ibufsz;
+extern size_t ibufsz;
 
 /* global flags */
-extern int isbinary;
-extern int isglobal;
-extern int modified;
+extern edbool isbinary;
+extern edbool isglobal;
+extern edbool modified;
 
 extern volatile sig_atomic_t mutex;
 extern volatile sig_atomic_t sighup;

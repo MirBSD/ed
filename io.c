@@ -36,14 +36,14 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/io.c,v 1.10 2020/10/27 04:47:08 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.11 2020/10/27 05:54:18 tg Exp $");
 
 static int read_stream(FILE *, int);
-static int get_stream_line(FILE *);
+static ssize_t get_stream_line(FILE *);
 static int write_stream(FILE *, int, int);
 static int put_stream_line(FILE *, char *, size_t);
 
-extern int scripted;
+extern edbool scripted;
 
 /* read_file: read a named file/pipe into the buffer; return line count */
 int
@@ -71,8 +71,8 @@ read_file(char *fn, int n)
 
 
 static char *sbuf;		/* file i/o buffer */
-static int sbufsz;		/* file i/o buffer size */
-int newline_added;		/* if set, newline appended to input file */
+static size_t sbufsz;		/* file i/o buffer size */
+edbool newline_added;		/* if set, newline appended to input file */
 
 /* read_stream: read a stream into the editor buffer; return status */
 static int
@@ -81,10 +81,10 @@ read_stream(FILE *fp, int n)
 	line_t *lp = get_addressed_line_node(n);
 	undo_t *up = NULL;
 	unsigned int size = 0;
-	int o_newline_added = newline_added;
-	int o_isbinary = isbinary;
-	int appended = (n == addr_last);
-	int len;
+	edbool o_newline_added = newline_added;
+	edbool o_isbinary = isbinary;
+	edbool appended = (n == addr_last);
+	ssize_t len;
 
 	isbinary = newline_added = 0;
 	for (current_addr = n; (len = get_stream_line(fp)) > 0; size += len) {
@@ -114,16 +114,16 @@ read_stream(FILE *fp, int n)
 	if (!size)
 		newline_added = 1;
 	newline_added = appended ? newline_added : o_newline_added;
-	isbinary = isbinary | o_isbinary;
+	isbinary = isbinary || o_isbinary;
 	return size;
 }
 
 /* get_stream_line: read a line of text from a stream; return line length */
-static int
+static ssize_t
 get_stream_line(FILE *fp)
 {
 	int c;
-	int i = 0;
+	size_t i = 0;
 
 	while (((c = getc(fp)) != EOF || (!feof(fp) &&
 	    !ferror(fp))) && c != '\n') {
@@ -143,7 +143,7 @@ get_stream_line(FILE *fp)
 		newline_added = 1;
 	}
 	sbuf[i] = '\0';
-	return (isbinary && newline_added && i) ? --i : i;
+	return (size_t)((isbinary && newline_added && i) ? --i : i);
 }
 
 
@@ -212,12 +212,12 @@ put_stream_line(FILE *fp, char *s, size_t len)
 
 /* get_extended_line: get a an extended line from stdin */
 char *
-get_extended_line(int *sizep, int nonl)
+get_extended_line(ssize_t *sizep, int nonl)
 {
 	static char *cvbuf = NULL;		/* buffer */
-	static int cvbufsz = 0;			/* buffer size */
+	static size_t cvbufsz = 0;		/* buffer size */
 
-	int l, n;
+	ssize_t l, n;
 	char *t = ibufp;
 
 	while (*t++ != '\n')
@@ -227,7 +227,7 @@ get_extended_line(int *sizep, int nonl)
 		return ibufp;
 	}
 	*sizep = -1;
-	REALLOC(cvbuf, cvbufsz, l, NULL);
+	REALLOC(cvbuf, cvbufsz, (size_t)l, NULL);
 	memcpy(cvbuf, ibufp, l);
 	*(cvbuf + --l - 1) = '\n'; 	/* strip trailing esc */
 	if (nonl)
@@ -239,7 +239,7 @@ get_extended_line(int *sizep, int nonl)
 			seterrmsg("unexpected end-of-file");
 			return NULL;
 		}
-		REALLOC(cvbuf, cvbufsz, l + n, NULL);
+		REALLOC(cvbuf, cvbufsz, (size_t)l + (size_t)n, NULL);
 		memcpy(cvbuf + l, ibuf, n);
 		l += n;
 		if (n < 2 || !has_trailing_escape(cvbuf, cvbuf + l - 1))
@@ -247,7 +247,7 @@ get_extended_line(int *sizep, int nonl)
 		*(cvbuf + --l - 1) = '\n'; 	/* strip trailing esc */
 		if (nonl) l--; 			/* strip newline */
 	}
-	REALLOC(cvbuf, cvbufsz, l + 1, NULL);
+	REALLOC(cvbuf, cvbufsz, (size_t)l + 1U, NULL);
 	cvbuf[l] = '\0';
 	*sizep = l;
 	return cvbuf;
@@ -255,11 +255,11 @@ get_extended_line(int *sizep, int nonl)
 
 
 /* get_tty_line: read a line of text from stdin; return line length */
-int
+ssize_t
 get_tty_line(void)
 {
-	int oi = 0;
-	int i = 0;
+	size_t oi = 0;
+	size_t i = 0;
 	int c;
 
 	for (;;)
@@ -267,7 +267,8 @@ get_tty_line(void)
 		default:
 			oi = 0;
 			REALLOC(ibuf, ibufsz, i + 2, ERR);
-			if (!(ibuf[i++] = c)) isbinary = 1;
+			if (!(ibuf[i++] = c))
+				isbinary = 1;
 			if (c != '\n')
 				continue;
 			lineno++;
