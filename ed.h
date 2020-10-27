@@ -1,4 +1,4 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.12 2020/10/27 04:35:55 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.14 2020/10/27 04:38:06 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.22 2016/03/27 00:43:38 mmcc Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -90,7 +90,7 @@ typedef struct undo {
 
 	int type;			/* command type */
 	line_t	*h;			/* head of list */
-	line_t  *t;			/* tail of list */
+	line_t	*t;			/* tail of list */
 } undo_t;
 
 #ifndef MAX
