@@ -1,4 +1,4 @@
-.\"	$MirOS: src/bin/ed/ed.1,v 1.15 2020/10/27 05:20:36 tg Exp $
+.\"	$MirOS: src/bin/ed/ed.1,v 1.16 2020/10/27 05:22:06 tg Exp $
 .\"	$OpenBSD: ed.1,v 1.75 2019/07/30 09:23:35 schwarze Exp $
 .\"
 .\" Copyright (c) 1993 Andrew Moore, Talke Studio.
@@ -911,8 +911,8 @@ exits.
 When an interrupt occurs,
 .Nm
 prints
-.Sq ?\en
-and returns to command mode.
+.Sq \&?
+and a newline, then returns to command mode.
 If interrupted during text input,
 the text already input is written to the current buffer,
 as if text input had been normally terminated.
