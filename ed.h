@@ -1,4 +1,4 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.14 2020/10/27 04:38:06 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.15 2020/10/27 04:47:07 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.22 2016/03/27 00:43:38 mmcc Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -76,7 +76,7 @@ typedef struct line {
 	struct line	*q_forw;
 	struct line	*q_back;
 	tp_ftell	adr;		/* address of line in scratch buffer */
-	int		llen;		/* length of line */
+	size_t		llen;		/* length of line */
 } line_t;
 
 
@@ -131,7 +131,7 @@ typedef struct undo {
 /* REALLOC: assure at least a minimum size for buffer b */
 #define REALLOC(b,n,i,err) \
 if ((i) > (n)) { \
-	int ti = (n); \
+	size_t ti = (n); \
 	char *ts; \
 	SPL1(); \
 	if ((ts = realloc((b), ti += MAX((i), MINBUFSZ))) == NULL) { \
@@ -190,13 +190,13 @@ int open_sbuf(void);
 int pop_undo_stack(void);
 undo_t *push_undo_stack(int, int, int);
 char *put_sbuf_line(char *);
-int put_tty_line(char *, int, int, int);
+int put_tty_line(char *, size_t, int, int);
 void quit(int) __attribute__((__noreturn__));
 int read_file(char *, int);
 int search_and_replace(regex_t *, int, int);
 void seterrmsg(const char *);
 char *strip_escapes(const char *);
-char *translit_text(char *, int, int, int);
+char *translit_text(char *, size_t, int, int);
 void unmark_line_node(line_t *);
 void unset_active_nodes(line_t *, line_t *);
 int write_file(const char *, const char *, int, int);

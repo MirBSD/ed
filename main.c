@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.17 2020/10/27 04:35:55 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.18 2020/10/27 04:47:08 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -1085,10 +1085,10 @@ static int
 join_lines(int from, int to)
 {
 	static char *buf = NULL;
-	static int n;
+	static size_t n;
 
 	char *s;
-	int size = 0;
+	size_t size = 0;
 	line_t *bp, *ep;
 
 	ep = get_addressed_line_node(INC_MOD(to, addr_last));

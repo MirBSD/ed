@@ -44,7 +44,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/buf.c,v 1.7 2020/10/27 04:35:54 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/buf.c,v 1.8 2020/10/27 04:47:07 tg Exp $");
 
 static FILE *sfp;			/* scratch file pointer */
 static tp_ftell sfpos;			/* scratch file position */
@@ -57,8 +57,8 @@ char *
 get_sbuf_line(line_t *lp)
 {
 	static char *sfbuf = NULL;	/* buffer */
-	static int sfbufsz = 0;		/* buffer size */
-	int len;
+	static size_t sfbufsz = 0;	/* buffer size */
+	size_t len;
 
 	if (lp == &buffer_head)
 		return NULL;
@@ -91,7 +91,7 @@ char *
 put_sbuf_line(char *cs)
 {
 	line_t *lp;
-	int len;
+	size_t len;
 	char *s;
 
 	if ((lp = malloc(sizeof(line_t))) == NULL) {
@@ -278,7 +278,7 @@ init_buffers(void)
 
 /* translit_text: translate characters in a string */
 char *
-translit_text(char *s, int len, int from, int to)
+translit_text(char *s, size_t len, int from, int to)
 {
 	static int i = 0;
 

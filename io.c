@@ -36,12 +36,12 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/io.c,v 1.9 2020/10/27 04:35:55 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.10 2020/10/27 04:47:08 tg Exp $");
 
 static int read_stream(FILE *, int);
 static int get_stream_line(FILE *);
 static int write_stream(FILE *, int, int);
-static int put_stream_line(FILE *, char *, int);
+static int put_stream_line(FILE *, char *, size_t);
 
 extern int scripted;
 
@@ -179,7 +179,7 @@ write_stream(FILE *fp, int n, int m)
 	line_t *lp = get_addressed_line_node(n);
 	unsigned int size = 0;
 	char *s;
-	int len;
+	size_t len;
 
 	for (; n && n <= m; n++, lp = lp->q_forw) {
 		if ((s = get_sbuf_line(lp)) == NULL)
@@ -197,7 +197,7 @@ write_stream(FILE *fp, int n, int m)
 
 /* put_stream_line: write a line of text to a stream; return status */
 static int
-put_stream_line(FILE *fp, char *s, int len)
+put_stream_line(FILE *fp, char *s, size_t len)
 {
 	while (len--) {
 		if (fputc(*s, fp) == EOF) {
@@ -303,7 +303,7 @@ extern int cols;
 
 /* put_tty_line: print text to stdout */
 int
-put_tty_line(char *s, int l, int n, int gflag)
+put_tty_line(char *s, size_t l, int n, int gflag)
 {
 	int col = 0;
 	char *cp;
