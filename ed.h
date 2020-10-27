@@ -1,4 +1,4 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.17 2020/10/27 06:43:11 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.18 2020/10/27 06:47:35 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.22 2016/03/27 00:43:38 mmcc Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -109,7 +109,7 @@ typedef struct undo {
 #define SPL1() mutex++
 
 /* SPL0: enable all interrupts; check signal flags (requires reliable signals) */
-#define SPL0()						\
+#define SPL0impl()					\
 	do {						\
 		if (--mutex == 0) {			\
 			if (sighup)			\
@@ -118,6 +118,12 @@ typedef struct undo {
 				handle_int(SIGINT);	\
 		}					\
 	} while (0)
+#ifdef SMALL
+extern void edSPL0(void);
+#define SPL0 edSPL0
+#else
+#define SPL0 SPL0impl
+#endif
 
 /* STRTOI: convert a string to int */
 #define STRTOI(i, p) { \

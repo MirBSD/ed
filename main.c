@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.21 2020/10/27 06:43:11 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.22 2020/10/27 06:47:35 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -1420,12 +1420,18 @@ edREALLOC(void **bufp, size_t *lenp, size_t incr)
 	if ((ts = realloc(*bufp, ti += MAX(incr, MINBUFSZ))) == NULL) {
 		perror(NULL);
 		seterrmsg("out of memory");
-		SPL0();
+		SPL0impl();
 		return (1);
 	}
 	*lenp = ti;
 	*bufp = ts;
-	SPL0();
+	SPL0impl();
 	return (0);
+}
+
+void
+edSPL0(void)
+{
+	SPL0impl();
 }
 #endif
