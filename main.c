@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.20 2020/10/27 06:11:29 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.21 2020/10/27 06:43:11 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -1404,5 +1404,28 @@ handle_winch(int signo __attribute__((__unused__)))
 			cols = ws.ws_col - 8;
 	}
 	errno = save_errno;
+}
+#endif
+
+#ifdef SMALL
+/* keep in sync with ed.h */
+
+int
+edREALLOC(void **bufp, size_t *lenp, size_t incr)
+{
+	size_t ti = *lenp;
+	void *ts;
+
+	SPL1();
+	if ((ts = realloc(*bufp, ti += MAX(incr, MINBUFSZ))) == NULL) {
+		perror(NULL);
+		seterrmsg("out of memory");
+		SPL0();
+		return (1);
+	}
+	*lenp = ti;
+	*bufp = ts;
+	SPL0();
+	return (0);
 }
 #endif

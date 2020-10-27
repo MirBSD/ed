@@ -1,4 +1,4 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.16 2020/10/27 05:54:18 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.17 2020/10/27 06:43:11 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.22 2016/03/27 00:43:38 mmcc Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -131,6 +131,14 @@ typedef struct undo {
 }
 
 /* REALLOC: assure at least a minimum size for buffer b */
+#ifdef SMALL
+extern int edREALLOC(void **, size_t *, size_t);
+#define REALLOC(b,n,i,err)				\
+if ((i) > (n)) {					\
+	if (edREALLOC((void **)&(b), &(n), (i)))	\
+		return (err);				\
+}
+#else
 #define REALLOC(b,n,i,err) \
 if ((i) > (n)) { \
 	size_t ti = (n); \
@@ -146,6 +154,7 @@ if ((i) > (n)) { \
 	(b) = ts; \
 	SPL0(); \
 }
+#endif
 
 /* REQUE: link pred before succ */
 #define REQUE(pred, succ) (pred)->q_forw = (succ), (succ)->q_back = (pred)
