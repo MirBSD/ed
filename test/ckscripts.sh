@@ -1,5 +1,5 @@
 #!/bin/mksh
-#	$MirOS: src/bin/ed/test/ckscripts.sh,v 1.4 2020/10/27 07:58:58 tg Exp $
+#	$MirOS: src/bin/ed/test/ckscripts.sh,v 1.5 2020/10/27 08:05:56 tg Exp $
 #	$OpenBSD: ckscripts.sh,v 1.3 1998/07/12 03:49:08 todd Exp $
 #	$NetBSD: ckscripts.sh,v 1.9 1995/04/23 10:07:34 cgd Exp $
 #
@@ -26,6 +26,7 @@ for i in *.ed; do
 #	base=`echo $i | sed 's/\..*//'`
 	base=`$ED - \!"echo $i" <<-EOF
 		s/\..*/
+		Q
 	EOF`
 	if $base.ed; then
 		if cmp -s $base.o $base.r; then :; else

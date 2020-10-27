@@ -1,5 +1,5 @@
 #!/bin/mksh
-#	$MirOS: src/bin/ed/test/mkscripts.sh,v 1.4 2020/10/27 07:58:58 tg Exp $
+#	$MirOS: src/bin/ed/test/mkscripts.sh,v 1.5 2020/10/27 08:05:57 tg Exp $
 #	$OpenBSD: mkscripts.sh,v 1.2 1996/06/23 14:20:08 deraadt Exp $
 #	$NetBSD: mkscripts.sh,v 1.10 1995/04/23 10:07:36 cgd Exp $
 #
@@ -26,6 +26,7 @@ for i in *.t; do
 # use of ed  but the point is that it can be done...
 	base=`$ED - \!"echo $i" <<-EOF
 		s/\..*/
+		Q
 	EOF`
 	$ED - <<-EOF
 		a
@@ -34,11 +35,13 @@ for i in *.t; do
 		H
 		r $base.d
 		w $base.o
+		Q
 		EOT
 		.
-		-2r $i
+		-3r $i
 		w $base.ed
 		!chmod +x $base.ed
+		Q
 	EOF
 done
 
@@ -60,6 +63,7 @@ for i in *.err; do
 # use of ed  but the point is that it can be done...
 	base=`$ED - \!"echo $i" <<-EOF
 		s/\..*/
+		Q
 	EOF`
 	$ED - <<-EOF
 		a
@@ -68,10 +72,12 @@ for i in *.err; do
 		H
 		r $base.err
 		w $base.o
+		Q
 		EOT
 		.
-		-2r $i
+		-3r $i
 		w ${base}.red
 		!chmod +x ${base}.red
+		Q
 	EOF
 done
