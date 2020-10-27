@@ -34,6 +34,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <errno.h>
 #include <limits.h>
 #include <regex.h>
 #include <signal.h>
@@ -44,11 +45,11 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/buf.c,v 1.8 2020/10/27 04:47:07 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/buf.c,v 1.9 2020/10/27 05:20:36 tg Exp $");
 
 static FILE *sfp;			/* scratch file pointer */
 static tp_ftell sfpos;			/* scratch file position */
-static int seek_write;			/* seek before writing */
+static edbool seek_write;		/* seek before writing */
 static line_t buffer_head;		/* incore buffer */
 
 /* get_sbuf_line: get a line of text from the scratch file; return pointer
@@ -200,8 +201,9 @@ get_addressed_line_node(int n)
 
 extern int newline_added;
 
-#define SCRATCH_TEMPLATE      "/tmp/ed.XXXXXXXXXX"
-static char sfn[sizeof(SCRATCH_TEMPLATE)+1] = "";	/* scratch file name */
+static char *sfn;
+static char *sfn_template;
+static size_t sfnlen;
 
 /* open_sbuf: open scratch file */
 int
@@ -210,12 +212,14 @@ open_sbuf(void)
 	int fd = -1;
 
 	isbinary = newline_added = 0;
-	strlcpy(sfn, SCRATCH_TEMPLATE, sizeof sfn);
+	memcpy(sfn, sfn_template, sfnlen);
 	if ((fd = mkstemp(sfn)) == -1 ||
 	    (sfp = fdopen(fd, "w+")) == NULL) {
-		if (fd != -1)
-			close(fd);
 		perror(sfn);
+		if (fd != -1) {
+			close(fd);
+			unlink(sfn);
+		}
 		seterrmsg("cannot open temp file");
 		return ERR;
 	}
@@ -233,8 +237,8 @@ close_sbuf(void)
 			seterrmsg("cannot close temp file");
 			return ERR;
 		}
-		sfp = NULL;
 		unlink(sfn);
+		sfp = NULL;
 	}
 	sfpos = seek_write = 0;
 	return 0;
@@ -255,11 +259,27 @@ quit(int n)
 
 static unsigned char ctab[256];		/* character translation table */
 
-/* init_buffers: open scratch buffer; initialize line queue */
+/* init_buffers: open scratch buffer; initialise line queue */
 void
 init_buffers(void)
 {
 	int i = 0;
+
+	if ((sfn = getenv("TMPDIR"))) {
+		sfnlen = strlen(sfn);
+		while (sfnlen && sfn[sfnlen - 1] == '/')
+			sfn[--sfnlen] = '\0';
+	}
+	errno = ENOMEM;
+	if (asprintf(&sfn_template, "%s/ed.XXXXXXXXXX",
+	    sfn && *sfn ? sfn : "/tmp") == -1) {
+ err:
+		perror(NULL);
+		quit(2);
+	}
+	sfnlen = strlen(sfn_template) + 1;
+	if (!(sfn = malloc(sfnlen)))
+		goto err;
 
 	/* Read stdin one character at a time to avoid i/o contention
 	   with shell escapes invoked by nonterminal input, e.g.,

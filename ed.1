@@ -1,4 +1,4 @@
-.\"	$MirOS: src/bin/ed/ed.1,v 1.14 2020/10/27 04:28:34 tg Exp $
+.\"	$MirOS: src/bin/ed/ed.1,v 1.15 2020/10/27 05:20:36 tg Exp $
 .\"	$OpenBSD: ed.1,v 1.75 2019/07/30 09:23:35 schwarze Exp $
 .\"
 .\" Copyright (c) 1993 Andrew Moore, Talke Studio.
@@ -898,7 +898,7 @@ is printed to the standard output.
 The current line is unchanged.
 .El
 .Sh ASYNCHRONOUS EVENTS
-.Bl -tag -width "SIGWINCH"
+.Bl -tag -width XtmpXedXX
 .It Dv SIGHUP
 If the current buffer has changed since it was last written,
 .Nm
@@ -921,10 +921,16 @@ This signal is ignored.
 .It Dv SIGWINCH
 The screen is resized.
 .El
+.Sh ENVIRONMENT
+.Bl -tag -width XtmpXedXX -compact
+.It Ev TMPDIR
+location to use for temporary files
+.El
 .Sh FILES
-.Bl -tag -width /tmp/ed.* -compact
+.Bl -tag -width XtmpXedXX -compact
 .It Pa /tmp/ed.*
 buffer file
+.Pq actually in Ev $TMPDIR No if set
 .It Pa ed.hup
 where
 .Nm
