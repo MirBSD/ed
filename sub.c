@@ -38,7 +38,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/sub.c,v 1.3 2020/10/27 05:54:19 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/sub.c,v 1.4 2020/10/27 08:21:06 tg Exp $");
 
 static char *extract_subst_template(void);
 static int substitute_matching_text(regex_t *, line_t *, int, int);
@@ -223,7 +223,8 @@ substitute_matching_text(regex_t *pat, line_t *lp, int gflag, int kth)
 			else
 				nempty = rm[0].rm_so = rm[0].rm_eo;
 			rm[0].rm_eo = lp->llen;
-		} while (rm[0].rm_so < lp->llen && (gflag & GSG || kth) &&
+		} while ((ssize_t)rm[0].rm_so < (ssize_t)lp->llen &&
+		    (gflag & GSG || kth) &&
 		    !regexec(pat, txt, SE_MAX, rm, REG_STARTEND | REG_NOTBOL));
 		i = eot - eom;
 		REALLOC(rbuf, rbufsz, (size_t)off + (size_t)i + 2U, ERR);
