@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.25 2020/10/27 07:45:35 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.26 2020/10/27 07:46:34 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -85,7 +85,7 @@ static int mark_line_node(line_t *, int);
 static int get_marked_node_addr(int);
 static line_t *dup_line_node(line_t *);
 
-sigjmp_buf env;
+static sigjmp_buf env;
 
 /* static buffers */
 static char errmsg[PATH_MAX + 40];	/* error message buffer */
