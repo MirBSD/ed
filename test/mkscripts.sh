@@ -1,5 +1,5 @@
 #!/bin/mksh
-#	$MirOS: src/bin/ed/test/mkscripts.sh,v 1.3 2016/11/06 19:55:04 tg Exp $
+#	$MirOS: src/bin/ed/test/mkscripts.sh,v 1.4 2020/10/27 07:58:58 tg Exp $
 #	$OpenBSD: mkscripts.sh,v 1.2 1996/06/23 14:20:08 deraadt Exp $
 #	$NetBSD: mkscripts.sh,v 1.10 1995/04/23 10:07:36 cgd Exp $
 #
@@ -25,7 +25,7 @@ for i in *.t; do
 # The following is pretty ugly way of doing the above, and not appropriate 
 # use of ed  but the point is that it can be done...
 	base=`$ED - \!"echo $i" <<-EOF
-		s/\..*
+		s/\..*/
 	EOF`
 	$ED - <<-EOF
 		a
@@ -59,7 +59,7 @@ for i in *.err; do
 # The following is pretty ugly way of doing the above, and not appropriate 
 # use of ed  but the point is that it can be done...
 	base=`$ED - \!"echo $i" <<-EOF
-		s/\..*
+		s/\..*/
 	EOF`
 	$ED - <<-EOF
 		a
