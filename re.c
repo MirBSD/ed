@@ -37,7 +37,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/re.c,v 1.2 2020/10/27 05:54:18 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/re.c,v 1.3 2020/10/27 06:11:29 tg Exp $");
 
 static char *extract_pattern(int);
 static char *parse_char_class(char *);
@@ -51,7 +51,7 @@ regex_t *
 get_compiled_pattern(void)
 {
 	static regex_t *exp = NULL;
-	char errbuf[128] = "";
+	char errbuf[128];
 
 	char *exps;
 	char delimiter;

@@ -36,7 +36,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/io.c,v 1.11 2020/10/27 05:54:18 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.12 2020/10/27 06:11:29 tg Exp $");
 
 static int read_stream(FILE *, int);
 static ssize_t get_stream_line(FILE *);
@@ -299,8 +299,8 @@ get_tty_line(void)
 #define ESCAPES "\a\b\f\n\r\t\v\\$"
 #define ESCCHARS "abfnrtv\\$"
 
-extern int rows;
-extern int cols;
+extern volatile sig_atomic_t rows;
+extern volatile sig_atomic_t cols;
 
 /* put_tty_line: print text to stdout */
 int

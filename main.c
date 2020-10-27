@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.19 2020/10/27 05:54:18 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.20 2020/10/27 06:11:29 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -105,7 +105,7 @@ edbool isbinary;		/* if set, buffer contains ASCII NULs */
 edbool isglobal;		/* if set, doing a global command */
 edbool modified;		/* if set, buffer modified since last write */
 edbool scripted = 0;		/* if set, suppress diagnostics */
-edbool interactive = 0;		/* if set, we are in interactive mode */
+static edbool interactive = 0;	/* if set, we are in interactive mode */
 
 volatile sig_atomic_t mutex = 0;  /* if set, signals set flags */
 volatile sig_atomic_t sighup = 0; /* if set, sighup received while mutex set */
