@@ -37,7 +37,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/re.c,v 1.3 2020/10/27 06:11:29 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/re.c,v 1.4 2020/10/27 06:26:01 tg Exp $");
 
 static char *extract_pattern(int);
 static char *parse_char_class(char *);
@@ -91,10 +91,10 @@ static char *
 extract_pattern(int delimiter)
 {
 	static char *lhbuf = NULL;	/* buffer */
-	static int lhbufsz = 0;		/* buffer size */
+	static size_t lhbufsz = 0;	/* buffer size */
 
 	char *nd;
-	int len;
+	size_t len;
 
 	for (nd = ibufp; *nd != delimiter && *nd != '\n'; nd++)
 		switch (*nd) {
