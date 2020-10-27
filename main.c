@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.22 2020/10/27 06:47:35 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.23 2020/10/27 07:01:26 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -846,8 +846,10 @@ exec_command(void)
 		first_addr = 1;
 		if (check_addr_range(first_addr, current_addr + 1) < 0)
 			return ERR;
-		else if ('0' < *ibufp && *ibufp <= '9')
-			STRTOI(rows, ibufp);
+		else if ('0' < *ibufp && *ibufp <= '9') {
+			STRTOI(c, ibufp);
+			rows = c;
+		}
 		GET_COMMAND_SUFFIX();
 		if (display_lines(second_addr, MIN(addr_last,
 		    second_addr + rows), gflag) < 0)
@@ -1435,3 +1437,15 @@ edSPL0(void)
 	SPL0impl();
 }
 #endif
+
+int
+edSTRTOI(int *ip, char **bp)
+{
+	long l = strtol(*bp, bp, 10);
+	if (l <= INT_MIN || l >= INT_MAX) {
+		seterrmsg("number out of range");
+		return (1);
+	}
+	*ip = (int)l;
+	return (0);
+}

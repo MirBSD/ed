@@ -1,4 +1,4 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.18 2020/10/27 06:47:35 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.19 2020/10/27 07:01:26 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.22 2016/03/27 00:43:38 mmcc Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -126,15 +126,11 @@ extern void edSPL0(void);
 #endif
 
 /* STRTOI: convert a string to int */
-#define STRTOI(i, p) { \
-	long l = strtol(p, &p, 10); \
-	if (l <= INT_MIN || l >= INT_MAX) { \
-		seterrmsg("number out of range"); \
-	    	i = 0; \
-		return ERR; \
-	} else \
-		i = (int)l; \
-}
+extern int edSTRTOI(int *, char **);
+#define STRTOI(i,p) do {		\
+	if (edSTRTOI(&(i), &(p)))	\
+		return (ERR);		\
+} while (/* CONSTCOND */ 0)
 
 /* REALLOC: assure at least a minimum size for buffer b */
 #ifdef SMALL
