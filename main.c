@@ -65,7 +65,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.23 2020/10/27 07:01:26 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.24 2020/10/27 07:25:35 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -123,6 +123,7 @@ static const char *dps = "*";	/* default command-line prompt */
 static const char usage[] = "usage: %s [-] [-s] [-p string] [file]\n";
 
 static char *home;		/* home directory */
+static struct stat sb;		/* only used in main but stack→heap */
 
 void
 seterrmsg(const char *s)
@@ -174,8 +175,6 @@ main(volatile int argc, char ** volatile argv)
 	}
 
 	if (!(interactive = isatty(0))) {
-		struct stat sb;
-
 		/* assert: pipes show up as FIFOs when fstat'd */
 		if (fstat(STDIN_FILENO, &sb) || !S_ISFIFO(sb.st_mode)) {
 			if (lseek(STDIN_FILENO, (off_t)0, SEEK_CUR)) {
@@ -325,19 +324,21 @@ extract_addr_range(void)
 }
 
 
-#define	SKIP_BLANKS() \
+#define	SKIP_BLANKSimpl() \
 	do { \
 		while (isspace((unsigned char)*ibufp) && *ibufp != '\n') \
 			ibufp++; \
 	} while (0)
-
-#define MUST_BE_FIRST() \
-	do { \
-		if (!first) { \
-			seterrmsg("invalid address"); \
-			return ERR; \
-		} \
-	} while (0)
+#ifdef SMALL
+static void
+edSKIP_BLANKS(void)
+{
+	SKIP_BLANKSimpl();
+}
+#define SKIP_BLANKS edSKIP_BLANKS
+#else
+#define SKIP_BLANKS SKIP_BLANKSimpl
+#endif
 
 
 /*  next_addr: return the next line address in the command buffer */
@@ -369,18 +370,24 @@ next_addr(void)
 		case '0': case '1': case '2':
 		case '3': case '4': case '5':
 		case '6': case '7': case '8': case '9':
-			MUST_BE_FIRST();
+			if (!first) {
+ not_first:
+				seterrmsg("invalid address");
+				return (ERR);
+			}
 			STRTOI(addr, ibufp);
 			break;
 		case '.':
 		case '$':
-			MUST_BE_FIRST();
+			if (!first)
+				goto not_first;
 			ibufp++;
 			addr = (c == '.') ? current_addr : addr_last;
 			break;
 		case '/':
 		case '?':
-			MUST_BE_FIRST();
+			if (!first)
+				goto not_first;
 			if ((addr = get_matching_node_addr(
 			    get_compiled_pattern(), c == '/')) < 0)
 				return ERR;
@@ -388,7 +395,8 @@ next_addr(void)
 				ibufp++;
 			break;
 		case '\'':
-			MUST_BE_FIRST();
+			if (!first)
+				goto not_first;
 			ibufp++;
 			if ((addr = get_marked_node_addr((unsigned char)*ibufp++)) < 0)
 				return ERR;
@@ -441,32 +449,39 @@ next_addr(void)
 
 
 /* GET_COMMAND_SUFFIX: verify the command suffix in the command buffer */
-#define GET_COMMAND_SUFFIX() \
-	do { \
-		int done = 0; \
-		do { \
-			switch (*ibufp) { \
-			case 'p': \
-				gflag |= GPR; \
-				ibufp++; \
-				break; \
-			case 'l': \
-				gflag |= GLS; \
-				ibufp++; \
-				break; \
-			case 'n': \
-				gflag |= GNP; \
-				ibufp++; \
-				break; \
-			default: \
-				done++; \
-			} \
-		} while (!done); \
-		if (*ibufp++ != '\n') { \
-			seterrmsg("invalid command suffix"); \
-			return ERR; \
-		} \
-	} while (0)
+#define GET_COMMAND_SUFFIXimpl(gflag,l) do {		\
+ loop_ ## l:						\
+	switch (*ibufp) {				\
+	case 'p':					\
+		gflag |= GPR;				\
+		ibufp++;				\
+		goto loop_ ## l;			\
+	case 'l':					\
+		gflag |= GLS;				\
+		ibufp++;				\
+		goto loop_ ## l;			\
+	case 'n':					\
+		gflag |= GNP;				\
+		ibufp++;				\
+		goto loop_ ## l;			\
+	}						\
+	if (*ibufp++ != '\n') {				\
+		seterrmsg("invalid command suffix");	\
+		return (ERR);				\
+	}						\
+} while (/* CONSTCOND */ 0)
+#ifdef SMALL
+static int
+edGET_COMMAND_SUFFIX(int *gflagp)
+{
+	GET_COMMAND_SUFFIXimpl((*gflagp), g);
+	return (0);
+}
+#define GET_COMMAND_SUFFIX() edGET_COMMAND_SUFFIX(&gflag)
+#else
+#define GET_COMMAND_SUFFIXindir(l) GET_COMMAND_SUFFIXimpl(gflag, l)
+#define GET_COMMAND_SUFFIX() GET_COMMAND_SUFFIXindir(__LINE__)
+#endif
 
 /* sflags */
 #define SGG 001		/* complement previous global substitute suffix */
