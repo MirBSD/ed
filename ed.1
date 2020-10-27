@@ -1,5 +1,5 @@
-.\"	$MirOS: src/bin/ed/ed.1,v 1.11 2020/09/04 22:36:59 tg Exp $
-.\"	$OpenBSD: ed.1,v 1.70 2018/04/26 12:18:54 martijn Exp $
+.\"	$MirOS: src/bin/ed/ed.1,v 1.12 2020/10/27 02:48:12 tg Exp $
+.\"	$OpenBSD: ed.1,v 1.75 2019/07/30 09:23:35 schwarze Exp $
 .\"
 .\" Copyright (c) 1993 Andrew Moore, Talke Studio.
 .\" All rights reserved.
@@ -91,7 +91,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: September 4 2020 $
+.Dd $Mdocdate: October 27 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -284,7 +284,9 @@ commands consist of zero or more line addresses, followed by a single
 character command and possibly additional parameters; i.e.,
 commands have the structure:
 .Pp
-.Dl [address [,address]]command[parameters]
+.Sm off
+.D1 Oo Ar address Oo , Ar address Oc Oc Ar command Op Ar parameters
+.Sm on
 .Pp
 The address(es) indicate the line or range of lines to be affected by the
 command.
@@ -300,7 +302,7 @@ See
 for more information on regular expressions.
 .Pp
 The options are as follows:
-.Bl -tag -width "-p string"
+.Bl -tag -width "Xp string"
 .It Fl
 Same as the
 .Fl s
@@ -439,6 +441,7 @@ The next line containing the regular expression
 .Ar re .
 The search wraps to the beginning of the buffer and continues down to the
 current line, if necessary.
+The second slash can be omitted if it ends a line.
 .Qq //
 repeats the last search.
 .It Pf ? Ar re ?
@@ -446,6 +449,7 @@ The previous line containing the regular expression
 .Ar re .
 The search wraps to the end of the buffer and continues up to the
 current line, if necessary.
+The second question mark can be omitted if it ends a line.
 .Qq ??
 repeats the last search.
 .It \*(aq Ns Ar lc
@@ -537,15 +541,16 @@ is not specified, then the default unescaped filename is printed.
 .Ar re No / Ar command-list
 .Xc
 .Sm on
-Applies
+Mark each addressed line matching the regular expression
+.Ar re
+for modification.
+The current address is set to each marked line in turn, and then the
 .Ar command-list
-to each of the addressed lines matching a regular expression
-.Ar re .
-The current address is set to the line currently matched before
-command-list is executed.
-At the end of the
-.Ic g
-command, the current address is set to the last line affected by command-list.
+is executed each time.
+The command-list can change the current line number,
+and it is not changed back after the command-list ended.
+When a marked line is changed, it is unmarked
+and the command-list won't be executed for it any more.
 If no lines were matched,
 the current line number remains unchanged.
 .Pp
@@ -560,14 +565,26 @@ Any commands are allowed, except for
 .Ic v ,
 and
 .Ic V .
-A newline alone in command-list is equivalent to a
+An empty
+.Ar command-list
+is equivalent to a
 .Ic p
-command.
+command \(em unlike for the
+.Cm G
+command, where an empty command-list does nothing, and unlike an empty
+command, which is equivalent to the command
+.Cm +p .
+If the
+.Ar command-list
+is empty, the trailing slash can be omitted.
 .Sm off
 .It (1,$) Ic G No / Ar re No /
 .Sm on
 Interactively edits the addressed lines matching a regular expression
 .Ar re .
+The trailing slash after
+.Ar re
+can be omitted.
 For each matching line, the line is printed, the current address is set,
 and the user is prompted to enter a
 .Ar command-list .
@@ -583,11 +600,10 @@ The format of
 .Ar command-list
 is the same as that of the
 .Ic g
-command.
-A newline alone acts as a null command list.
+command, but an empty command list does nothing.
 A single
 .Sq &
-repeats the last non-null command list.
+repeats the last non-empty command list.
 .It Ic H
 Toggles the printing of error explanations.
 By default, explanations are not printed.
@@ -600,7 +616,7 @@ Prints an explanation of the last error.
 Inserts text in the buffer before the current line.
 Text is entered in input mode.
 The current address is set to the last line entered.
-.It (.,.+1) Ns Ic j
+.It (.,+) Ns Ic j
 Joins the addressed lines.
 The addressed lines are deleted from the buffer and replaced by a single
 line containing their joined text.
@@ -783,24 +799,23 @@ is its own inverse.
 .Pf / Ar command-list
 .Xc
 .Sm on
-Applies
-.Ar command-list
-to each of the addressed lines not matching a regular expression
-.Ar re .
-This is similar to the
+The same as the
 .Ic g
-command.
+command, except that it applies
+.Ar command-list
+to each of the addressed lines not matching the regular expression
+.Ar re .
 .Sm off
 .It Xo
 .Pf (1,$) Ic V No /
 .Ar re No /
 .Xc
 .Sm on
-Interactively edits the addressed lines not matching a regular expression
-.Ar re .
-This is similar to the
+The same as the
 .Ic G
-command.
+command, except that it interactively edits the addressed lines
+not matching the regular expression
+.Ar re .
 .It (1,$) Ns Ic w Ar file
 Writes the addressed lines to
 .Ar file .
@@ -832,7 +847,7 @@ This is similar to the
 .Ic w
 command, except that the previous contents of file are not clobbered.
 The current address is unchanged.
-.It (.+1) Ns Ic z Ns Ar n
+.It (+) Ns Ic z Ns Ar n
 Scrolls
 .Ar n
 lines at a time starting at addressed line.
@@ -842,8 +857,10 @@ is not specified, then the current window size is used.
 The current address is set to the last line printed.
 .It ($) Ns Ic =
 Prints the line number of the addressed line.
-.It (.+1) Ns newline
-Prints the addressed line, and sets the current address to that line.
+.It (+)
+An address without a command prints the addressed line
+and sets the current address to that line.
+If the address is also omitted, it defaults to the next line (+).
 .It Ic \&! Ns Ar command
 Executes
 .Ar command

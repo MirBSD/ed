@@ -1,9 +1,11 @@
-/*	$OpenBSD: buf.c,v 1.23 2016/03/22 17:58:28 mmcc Exp $	*/
+/*	$OpenBSD: buf.c,v 1.24 2019/06/28 13:34:59 deraadt Exp $	*/
 /*	$NetBSD: buf.c,v 1.15 1995/04/23 10:07:28 cgd Exp $	*/
 
 /* buf.c: This file contains the scratch-file buffer routines for the
    ed line editor. */
 /*-
+ * Copyright (c) 2011, 2012
+ *	mirabilos <m@mirbsd.org>
  * Copyright (c) 1993 Andrew Moore, Talke Studio.
  * All rights reserved.
  *
@@ -42,7 +44,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/buf.c,v 1.5 2016/11/06 18:58:43 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/buf.c,v 1.6 2020/10/27 02:48:11 tg Exp $");
 
 static FILE *sfp;			/* scratch file pointer */
 static tp_ftell sfpos;			/* scratch file position */
@@ -56,8 +58,7 @@ get_sbuf_line(line_t *lp)
 {
 	static char *sfbuf = NULL;	/* buffer */
 	static int sfbufsz = 0;		/* buffer size */
-
-	int len, ct;
+	int len;
 
 	if (lp == &buffer_head)
 		return NULL;
@@ -65,7 +66,7 @@ get_sbuf_line(line_t *lp)
 	/* out of position */
 	if (sfpos != lp->adr) {
 		sfpos = lp->adr;
-		if (do_fseek(sfp, sfpos, SEEK_SET) < 0) {
+		if (do_fseek(sfp, sfpos, SEEK_SET) == -1) {
 			perror(NULL);
 			seterrmsg("cannot seek temp file");
 			return NULL;
@@ -73,7 +74,7 @@ get_sbuf_line(line_t *lp)
 	}
 	len = lp->len;
 	REALLOC(sfbuf, sfbufsz, len + 1, NULL);
-	if ((ct = fread(sfbuf, sizeof(char), len, sfp)) <  0 || ct != len) {
+	if (fread(sfbuf, sizeof(char), len, sfp) != len) {
 		perror(NULL);
 		seterrmsg("cannot read temp file");
 		return NULL;
@@ -90,7 +91,7 @@ char *
 put_sbuf_line(char *cs)
 {
 	line_t *lp;
-	int len, ct;
+	int len;
 	char *s;
 
 	if ((lp = malloc(sizeof(line_t))) == NULL) {
@@ -109,7 +110,7 @@ put_sbuf_line(char *cs)
 	len = s - cs;
 	/* out of position */
 	if (seek_write) {
-		if (do_fseek(sfp, (tp_ftell)0, SEEK_END) < 0) {
+		if (do_fseek(sfp, (tp_ftell)0, SEEK_END) == -1) {
 			perror(NULL);
 			seterrmsg("cannot seek temp file");
 			free(lp);
@@ -119,7 +120,7 @@ put_sbuf_line(char *cs)
 		seek_write = 0;
 	}
 	/* assert: SPL1() */
-	if ((ct = fwrite(cs, sizeof(char), len, sfp)) < 0 || ct != len) {
+	if (fwrite(cs, sizeof(char), len, sfp) != len) {
 		sfpos = -1;
 		perror(NULL);
 		seterrmsg("cannot write temp file");
@@ -227,7 +228,7 @@ int
 close_sbuf(void)
 {
 	if (sfp) {
-		if (fclose(sfp) < 0) {
+		if (fclose(sfp) == EOF) {
 			perror(sfn);
 			seterrmsg("cannot close temp file");
 			return ERR;

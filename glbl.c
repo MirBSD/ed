@@ -1,4 +1,4 @@
-/*	$OpenBSD: glbl.c,v 1.19 2017/04/26 21:25:43 naddy Exp $	*/
+/*	$OpenBSD: glbl.c,v 1.20 2018/06/04 13:26:21 martijn Exp $	*/
 /*	$NetBSD: glbl.c,v 1.2 1995/03/21 09:04:41 cgd Exp $	*/
 
 /* glob.c: This file contains the global command routines for the ed line
@@ -40,7 +40,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.5 2018/04/29 18:17:37 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.6 2020/10/27 02:48:12 tg Exp $");
 
 static int set_active_node(line_t *);
 static line_t *next_active_node(void);
@@ -76,9 +76,7 @@ build_active_list(int isgcmd)
 	return 0;
 }
 
-#ifdef BACKWARDS
 static char nullcmd[] = "p\n";
-#endif
 
 /* exec_global: apply command list in the command buffer to the active
    lines in a range; return command status */
@@ -93,7 +91,6 @@ exec_global(int interact, int gflag)
 	int n;
 	char *cmd = NULL;
 
-#ifdef BACKWARDS
 	if (!interact) {
 		if (!strcmp(ibufp, "\n"))
 			/* null cmd-list = "p" */
@@ -101,10 +98,6 @@ exec_global(int interact, int gflag)
 		else if ((cmd = get_extended_line(&n, 0)) == NULL)
 			return ERR;
 	}
-#else
-	if (!interact && (cmd = get_extended_line(&n, 0)) == NULL)
-		return ERR;
-#endif
 	clear_undo_stack();
 	while ((lp = next_active_node()) != NULL) {
 		if ((current_addr = get_line_node_addr(lp)) < 0)

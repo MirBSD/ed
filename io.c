@@ -1,4 +1,4 @@
-/*	$OpenBSD: io.c,v 1.21 2018/04/26 12:18:54 martijn Exp $	*/
+/*	$OpenBSD: io.c,v 1.24 2019/06/28 13:41:42 deraadt Exp $	*/
 /*	$NetBSD: io.c,v 1.2 1995/03/21 09:04:43 cgd Exp $	*/
 
 /* io.c: This file contains the i/o routines for the ed line editor */
@@ -36,7 +36,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/io.c,v 1.7 2018/04/29 18:17:37 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.8 2020/10/27 02:48:12 tg Exp $");
 
 static int read_stream(FILE *, int);
 static int get_stream_line(FILE *);
@@ -52,7 +52,6 @@ read_file(char *fn, int n)
 	FILE *fp;
 	int size;
 
-
 	fp = (*fn == '!') ? popen(fn + 1, "r") : fopen(strip_escapes(fn), "r");
 	if (fp == NULL) {
 		perror(fn);
@@ -60,7 +59,7 @@ read_file(char *fn, int n)
 		return ERR;
 	} else if ((size = read_stream(fp, n)) < 0)
 		return ERR;
-	 else if (((*fn == '!') ?  pclose(fp) : fclose(fp)) < 0) {
+	 else if ((*fn == '!') ?  pclose(fp) == -1 : fclose(fp) == EOF) {
 		perror(fn);
 		seterrmsg("cannot close input file");
 		return ERR;
@@ -162,7 +161,7 @@ write_file(const char *fn, const char *mode, int n, int m)
 		return ERR;
 	} else if ((size = write_stream(fp, n, m)) < 0)
 		return ERR;
-	 else if (((*fn == '!') ?  pclose(fp) : fclose(fp)) < 0) {
+	 else if ((*fn == '!') ?  pclose(fp) == -1 : fclose(fp) == EOF) {
 		perror(fn);
 		seterrmsg("cannot close output file");
 		return ERR;
@@ -201,7 +200,7 @@ static int
 put_stream_line(FILE *fp, char *s, int len)
 {
 	while (len--) {
-		if (fputc(*s, fp) < 0) {
+		if (fputc(*s, fp) == EOF) {
 			perror(NULL);
 			seterrmsg("cannot write file");
 			return ERR;
@@ -296,7 +295,6 @@ get_tty_line(void)
 }
 
 
-
 #define ESCAPES "\a\b\f\n\r\t\v\\$"
 #define ESCCHARS "abfnrtv\\$"
 
@@ -308,9 +306,6 @@ int
 put_tty_line(char *s, int l, int n, int gflag)
 {
 	int col = 0;
-#ifndef BACKWARDS
-	int lc = 0;
-#endif
 	char *cp;
 
 	if (gflag & GNP) {
@@ -321,15 +316,6 @@ put_tty_line(char *s, int l, int n, int gflag)
 		if ((gflag & GLS) && ++col > cols) {
 			fputs("\\\n", stdout);
 			col = 1;
-#ifndef BACKWARDS
-			if (!scripted && !isglobal && ++lc > rows) {
-				lc = 0;
-				fputs("Press <RETURN> to continue... ", stdout);
-				fflush(stdout);
-				if (get_tty_line() < 0)
-					return ERR;
-			}
-#endif
 		}
 		if (gflag & GLS) {
 			if (31 < *s && *s < 127 && *s != '\\' && *s != '$')

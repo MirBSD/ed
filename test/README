@@ -1,4 +1,4 @@
-$MirOS: src/bin/ed/test/README,v 1.6 2018/04/29 18:17:38 tg Exp $
+$MirOS: src/bin/ed/test/README,v 1.7 2020/10/27 02:48:13 tg Exp $
 $OpenBSD: README,v 1.3 2018/01/09 00:43:10 bluhm Exp $
 $NetBSD: README,v 1.8 1995/03/21 09:05:18 cgd Exp $
 
@@ -23,12 +23,6 @@ which look like:
 or:
 	*** Output u.o of script u.ed is incorrect ***
 
-A recent POSIX change allows 0i, making the following testcase fail:
-* i3.red
-
-A recent POSIX change allows ,n as abbreviation for 1,n failing:
-* nl.red
-
 The POSIX requirement that an address range not be used where at most
 a single address is expected has been relaxed in this version of ed.
 Therefore, the following scripts which test for compliance with this
@@ -38,9 +32,3 @@ POSIX rule exit abnormally (BSD ed as well as GNU ed):
 * i1.red
 * k1.red
 * r1.red
-
-The following (BSD ed only) erroring testcase is due to a deliberate
-removal of the infinite loop detection from the s command in OpenBSD
-sub.c 1.17, rather doing the replacement and incrementing the start
-point for the next search by one (which is closer to sed and vi):
-* s2.red

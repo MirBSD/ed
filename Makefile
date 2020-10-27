@@ -1,9 +1,8 @@
-# $MirOS: src/bin/ed/Makefile,v 1.4 2016/11/06 18:58:43 tg Exp $
-# $OpenBSD: Makefile,v 1.11 2014/05/24 01:35:55 daniel Exp $
+# $MirOS: src/bin/ed/Makefile,v 1.5 2020/10/27 02:48:11 tg Exp $
+# $OpenBSD: Makefile,v 1.12 2018/06/15 08:46:24 martijn Exp $
 
 PROG=		ed
 SRCS=		buf.c glbl.c io.c main.c re.c sub.c undo.c
-CPPFLAGS+=	-DBACKWARDS
 
 # These just get installed verbatim
 .if make(install)
