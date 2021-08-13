@@ -1,5 +1,5 @@
-.\"	$MirOS: src/bin/ed/ed.1,v 1.16 2020/10/27 05:22:06 tg Exp $
-.\"	$OpenBSD: ed.1,v 1.75 2019/07/30 09:23:35 schwarze Exp $
+.\"	$MirOS: src/bin/ed/ed.1,v 1.17 2021/08/13 18:08:07 tg Exp $
+.\"	$OpenBSD: ed.1,v 1.76 2021/03/08 02:47:26 jsg Exp $
 .\"
 .\" Copyright (c) 1993 Andrew Moore, Talke Studio.
 .\" All rights reserved.
@@ -91,7 +91,7 @@
 .\" with -mandoc, it might implement .Mx itself, but we want to
 .\" use our own definition. And .Dd must come *first*, always.
 .\"
-.Dd $Mdocdate: October 27 2020 $
+.Dd $Mdocdate: August 13 2021 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -978,12 +978,18 @@ but any changes to the buffer are lost.
 .Xr sh 1 ,
 .Xr vi 1 ,
 .Xr re_format 7
-.Pp
-"A Tutorial Introduction to the UNIX Text Editor",
-.Pa /usr/share/doc/usd/09.edtut/ .
-.Pp
-"Advanced Editing on UNIX",
-.Pa /usr/share/doc/usd/10.edadv/ .
+.Rs
+.\" 4.4BSD USD:9
+.%A B. W. Kernighan
+.%T A Tutorial Introduction to the UNIX Text Editor
+.%O 09.edtut(USD)
+.Re
+.Rs
+.\" 4.4BSD USD:10
+.%A B. W. Kernighan
+.%T Advanced Editing on UNIX
+.%O 10.edadv(USD)
+.Re
 .Pp
 .Pa http://www.gnu.org/fun/jokes/ed.html
 .Pq other implementations, humorous
