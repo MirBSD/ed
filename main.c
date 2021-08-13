@@ -4,7 +4,8 @@
 /* main.c: This file contains the main control and user-interface routines
    for the ed line editor. */
 /*-
- * Copyright (c) 2003, 2004, 2005, 2008, 2009, 2011, 2012, 2016, 2020
+ * Copyright (c) 2003, 2004, 2005, 2008, 2009, 2011, 2012, 2016, 2020,
+ *		 2021
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 1993 Andrew Moore, Talke Studio.
  * All rights reserved.
@@ -49,7 +50,6 @@
 
 #include <ctype.h>
 #include <err.h>
-#include <errno.h>
 #include <limits.h>
 #include <pwd.h>
 #include <setjmp.h>
@@ -64,7 +64,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.27 2021/08/13 17:48:27 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.28 2021/08/13 21:58:40 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -1015,13 +1015,11 @@ get_shell_command(void)
 			if (s != ibufp) {
 				REALLOC(buf, n, (size_t)i + 1U, ERR);
 				buf[i++] = *ibufp++;
-			}
-			else if (shcmd == NULL)
-			{
+			} else if (shcmd == NULL) {
 				seterrmsg("no previous command");
 				return ERR;
 			} else {
-				REALLOC(buf, n, i + shcmdi, ERR);
+				REALLOC(buf, n, (size_t)i + shcmdi, ERR);
 				for (s = shcmd + 1; s < shcmd + shcmdi;)
 					buf[i++] = *s++;
 				s = ibufp++;
@@ -1043,7 +1041,7 @@ get_shell_command(void)
 		seterrmsg("no command");
 		return ERR;
 	}
-	REALLOC(shcmd, shcmdsz, (size_t)i + 1, ERR);
+	REALLOC(shcmd, shcmdsz, (size_t)i + 1U, ERR);
 	memcpy(shcmd, buf, i);
 	shcmd[shcmdi = i] = '\0';
 	return *s == '!' || *s == '%';
@@ -1120,7 +1118,7 @@ join_lines(int from, int to)
 		memcpy(buf + size, s, bp->llen);
 		size += bp->llen;
 	}
-	REALLOC(buf, n, size + 2, ERR);
+	REALLOC(buf, n, size + 2U, ERR);
 	memcpy(buf + size, "\n", 2);
 	if (delete_lines(from, to) < 0)
 		return ERR;
@@ -1429,21 +1427,26 @@ handle_winch(int signo __attribute__((__unused__)))
 #ifdef SMALL
 /* keep in sync with ed.h */
 
+/* assure at least a minimum size for buffer *bufp */
 int
-edREALLOC(void **bufp, size_t *lenp, size_t incr)
+edREALLOC(void **bufp, size_t *lenp, size_t min)
 {
-	size_t ti = *lenp;
-	void *ts;
+	size_t L = min;
+	void *nb;
+
+	/* determine new len: round to next 2⁸ multiple */
+	L = (L + 0xFFU) & ((size_t)(~(size_t)0xFFU) + 0U);
 
 	SPL1();
-	if ((ts = realloc(*bufp, ti += MAX(incr, MINBUFSZ))) == NULL) {
+	errno = EOVERFLOW;
+	if (L < *lenp || L < min || !(nb = realloc(*bufp, L))) {
 		perror(NULL);
 		seterrmsg("out of memory");
 		SPL0impl();
 		return (1);
 	}
-	*lenp = ti;
-	*bufp = ts;
+	*lenp = L;
+	*bufp = nb;
 	SPL0impl();
 	return (0);
 }

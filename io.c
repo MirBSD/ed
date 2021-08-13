@@ -35,7 +35,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/io.c,v 1.13 2021/08/13 17:48:27 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.14 2021/08/13 21:58:40 tg Exp $");
 
 static int read_stream(FILE *, int);
 static ssize_t get_stream_line(FILE *);
@@ -126,11 +126,11 @@ get_stream_line(FILE *fp)
 
 	while (((c = getc(fp)) != EOF || (!feof(fp) &&
 	    !ferror(fp))) && c != '\n') {
-		REALLOC(sbuf, sbufsz, i + 1, ERR);
+		REALLOC(sbuf, sbufsz, i + 1U, ERR);
 		if (!(sbuf[i++] = c))
 			isbinary = 1;
 	}
-	REALLOC(sbuf, sbufsz, i + 2, ERR);
+	REALLOC(sbuf, sbufsz, i + 2U, ERR);
 	if (c == '\n')
 		sbuf[i++] = c;
 	else if (ferror(fp)) {
@@ -265,7 +265,7 @@ get_tty_line(void)
 		switch (c = getchar()) {
 		default:
 			oi = 0;
-			REALLOC(ibuf, ibufsz, i + 2, ERR);
+			REALLOC(ibuf, ibufsz, i + 2U, ERR);
 			if (!(ibuf[i++] = c))
 				isbinary = 1;
 			if (c != '\n')

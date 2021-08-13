@@ -36,7 +36,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/re.c,v 1.5 2021/08/13 17:48:28 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/re.c,v 1.6 2021/08/13 21:58:41 tg Exp $");
 
 static char *extract_pattern(int);
 static char *parse_char_class(char *);
@@ -113,7 +113,7 @@ extract_pattern(int delimiter)
 			break;
 		}
 	len = nd - ibufp;
-	REALLOC(lhbuf, lhbufsz, len + 1, NULL);
+	REALLOC(lhbuf, lhbufsz, len + 1U, NULL);
 	memcpy(lhbuf, ibufp, len);
 	lhbuf[len] = '\0';
 	ibufp = nd;

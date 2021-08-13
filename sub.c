@@ -37,7 +37,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/sub.c,v 1.5 2021/08/13 17:48:28 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/sub.c,v 1.6 2021/08/13 21:58:41 tg Exp $");
 
 static char *extract_subst_template(void);
 static int substitute_matching_text(regex_t *, line_t *, int, int);
@@ -94,7 +94,7 @@ extract_subst_template(void)
 		return rhbuf;
 	}
 	while (*ibufp != delimiter) {
-		REALLOC(rhbuf, rhbufsz, i + 2, NULL);
+		REALLOC(rhbuf, rhbufsz, i + 2U, NULL);
 		if ((c = rhbuf[i++] = *ibufp++) == '\n' && *ibufp == '\0') {
 			i--, ibufp--;
 			break;
@@ -110,7 +110,7 @@ extract_subst_template(void)
 				return NULL;
 		}
 	}
-	REALLOC(rhbuf, rhbufsz, i + 1, NULL);
+	REALLOC(rhbuf, rhbufsz, i + 1U, NULL);
 	rhbuf[rhbufi = i] = '\0';
 	return  rhbuf;
 }
@@ -261,10 +261,10 @@ apply_subst_template(char *boln, regmatch_t *rm, int off, int re_nsub)
 			while (j < k)
 				rbuf[off++] = boln[j++];
 		} else {
-			REALLOC(rbuf, rbufsz, (size_t)off + 1, ERR);
+			REALLOC(rbuf, rbufsz, (size_t)off + 1U, ERR);
 			rbuf[off++] = *sub;
 		}
-	REALLOC(rbuf, rbufsz, (size_t)off + 1, ERR);
+	REALLOC(rbuf, rbufsz, (size_t)off + 1U, ERR);
 	rbuf[off] = '\0';
 	return off;
 }

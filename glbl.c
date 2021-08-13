@@ -4,6 +4,8 @@
 /* glob.c: This file contains the global command routines for the ed line
    editor */
 /*-
+ * Copyright (c) 2021
+ *	mirabilos <m@mirbsd.org>
  * Copyright (c) 1993 Andrew Moore, Talke Studio.
  * All rights reserved.
  *
@@ -39,7 +41,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.10 2021/08/13 17:48:27 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.11 2021/08/13 21:58:40 tg Exp $");
 
 static int set_active_node(line_t *);
 static line_t *next_active_node(void);
@@ -142,32 +144,37 @@ exec_global(int interact, int gflag)
 
 
 static line_t **active_list;	/* list of lines active in a global command */
-static int active_last;		/* index of last active line in active_list */
-static int active_size;		/* size of active_list */
-static int active_ptr;		/* active_list index (non-decreasing) */
-static int active_ndx;		/* active_list index (modulo active_last) */
+static size_t active_last;	/* index of last active line in active_list */
+static size_t active_size;	/* size of active_list */
+static size_t active_ptr;	/* active_list index (non-decreasing) */
+static size_t active_ndx;	/* active_list index (modulo active_last) */
 
 /* set_active_node: add a line node to the global-active list */
 static int
 set_active_node(line_t *lp)
 {
-	if (active_last + 1 > active_size) {
-		int ti = active_size;
-		line_t **ts;
+	if (active_last >= active_size) {
+		size_t l = active_last + 1U;
+		line_t **nb;
+
+		/* determine new len: round to next 2⁵ multiple */
+		l = (l + 0x1FU) & ((size_t)(~(size_t)0x1FU) + 0U);
+
 		SPL1();
-		if ((ts = reallocarray(active_list,
-		    (ti += MINBUFSZ), sizeof(line_t **))) == NULL) {
+		errno = EOVERFLOW;
+		if (l <= active_size || !(nb = reallocarray(active_list,
+		    l, sizeof(line_t **)))) {
 			perror(NULL);
 			seterrmsg("out of memory");
 			SPL0();
-			return ERR;
+			return (ERR);
 		}
-		active_size = ti;
-		active_list = ts;
+		active_size = l;
+		active_list = nb;
 		SPL0();
 	}
 	active_list[active_last++] = lp;
-	return 0;
+	return (0);
 }
 
 
@@ -176,15 +183,15 @@ void
 unset_active_nodes(line_t *np, line_t *mp)
 {
 	line_t *lp;
-	int i;
+	size_t i;
 
 	for (lp = np; lp != mp; lp = lp->q_forw)
 		for (i = 0; i < active_last; i++)
 			if (active_list[active_ndx] == lp) {
 				active_list[active_ndx] = NULL;
-				active_ndx = INC_MOD(active_ndx, active_last - 1);
+				active_ndx = INC_MOD(active_ndx, active_last - 1U);
 				break;
-			} else	active_ndx = INC_MOD(active_ndx, active_last - 1);
+			} else	active_ndx = INC_MOD(active_ndx, active_last - 1U);
 }
 
 

@@ -34,7 +34,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <errno.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -44,7 +43,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/buf.c,v 1.11 2021/08/13 17:48:27 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/buf.c,v 1.12 2021/08/13 21:58:40 tg Exp $");
 
 static FILE *sfp;			/* scratch file pointer */
 static tp_ftell sfpos;			/* scratch file position */
@@ -73,7 +72,7 @@ get_sbuf_line(line_t *lp)
 		}
 	}
 	len = lp->llen;
-	REALLOC(sfbuf, sfbufsz, len + 1, NULL);
+	REALLOC(sfbuf, sfbufsz, len + 1U, NULL);
 	if (fread(sfbuf, sizeof(char), len, sfp) != len) {
 		perror(NULL);
 		seterrmsg("cannot read temp file");

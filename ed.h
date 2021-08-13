@@ -1,8 +1,8 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.20 2021/08/13 17:48:27 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.21 2021/08/13 21:58:40 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.22 2016/03/27 00:43:38 mmcc Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
-/* ed.h: type and constant definitions for the standard editor */
+/* ed.h: type and constant definitions for the standard text editor */
 /*
  * Copyright (c) 2013, 2016, 2020, 2021
  *	mirabilos <m@mirbsd.org>
@@ -33,6 +33,7 @@
  *	@(#)ed.h,v 1.5 1994/02/01 00:34:39 alm Exp
  */
 
+#include <errno.h>
 #include <limits.h>
 #include <regex.h>
 #include <signal.h>
@@ -106,7 +107,7 @@ typedef struct undo {
 #define DEC_MOD(l, k)	((l) - 1 < 0 ? (k) : (l) - 1)
 
 /* SPL1: disable some interrupts (requires reliable signals) */
-#define SPL1() mutex++
+#define SPL1() (mutex++)
 
 /* SPL0: enable all interrupts; check signal flags (requires reliable signals) */
 #define SPL0impl()					\
@@ -135,27 +136,34 @@ extern int edSTRTOI(int *, char **);
 /* REALLOC: assure at least a minimum size for buffer b */
 #ifdef SMALL
 extern int edREALLOC(void **, size_t *, size_t);
-#define REALLOC(b,n,i,err)				\
-if ((i) > (n)) {					\
-	if (edREALLOC((void **)&(b), &(n), (i)))	\
-		return (err);				\
-}
+#define REALLOC(b,n,i,err) do {						\
+	if ((i) > (n)) {						\
+		if (edREALLOC((void **)&(b), &(n), (i)))		\
+			return (err);					\
+	}								\
+} while (/* CONSTCOND */ 0)
 #else
-#define REALLOC(b,n,i,err) \
-if ((i) > (n)) { \
-	size_t ti = (n); \
-	char *ts; \
-	SPL1(); \
-	if ((ts = realloc((b), ti += MAX((i), MINBUFSZ))) == NULL) { \
-		perror(NULL); \
-		seterrmsg("out of memory"); \
-		SPL0(); \
-		return err; \
-	} \
-	(n) = ti; \
-	(b) = ts; \
-	SPL0(); \
-}
+#define REALLOC(b,n,i,err) do {						\
+	if ((i) > (n)) {						\
+		size_t L = (i);						\
+		void *nb;						\
+									\
+		/* determine new len: round to next 2⁸ multiple */	\
+		L = (L + 0xFFU) & ((size_t)(~(size_t)0xFFU) + 0U);	\
+									\
+		SPL1();							\
+		errno = EOVERFLOW;					\
+		if (L < (n) || L < (i) || !(nb = realloc((b), L))) {	\
+			perror(NULL);					\
+			seterrmsg("out of memory");			\
+			SPL0();						\
+			return (err);					\
+		}							\
+		(n) = L;						\
+		(b) = nb;						\
+		SPL0();							\
+	}								\
+} while (/* CONSTCOND */ 0)
 #endif
 
 /* REQUE: link pred before succ */
