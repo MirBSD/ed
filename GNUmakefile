@@ -1,4 +1,4 @@
-# $MirOS: src/bin/ed/GNUmakefile,v 1.13 2021/08/13 22:42:21 tg Exp $
+# $MirOS: src/bin/ed/GNUmakefile,v 1.14 2021/08/13 22:43:04 tg Exp $
 #-
 # Makefile for GNU make, possibly nmake
 # Add strlcpy(3), strlcat(3) and reallocarray(3) to the link either
@@ -26,11 +26,11 @@ $(PROG): $(OBJS) $(DPADD)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(PROG) $(OBJS) $(LDLIBS) $(LIBS) $(LDADD)
 
 strlcat.o: strlfun.c
-	cp strlfun.c strlcat.c
+	cat strlfun.c >strlcat.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(STFN) -DL_strlcat -c strlcat.c
 
 strlcpy.o: strlfun.c
-	cp strlfun.c strlcpy.c
+	cat strlfun.c >strlcpy.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(STFN) -DL_strlcpy -c strlcpy.c
 
 .c.o:
