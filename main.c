@@ -52,7 +52,6 @@
 #include <errno.h>
 #include <limits.h>
 #include <pwd.h>
-#include <regex.h>
 #include <setjmp.h>
 #include <signal.h>
 #include <stdio.h>
@@ -65,7 +64,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.26 2020/10/27 07:46:34 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.27 2021/08/13 17:48:27 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);

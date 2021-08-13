@@ -36,7 +36,6 @@
 
 #include <errno.h>
 #include <limits.h>
-#include <regex.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,7 +44,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/buf.c,v 1.10 2020/10/27 05:54:17 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/buf.c,v 1.11 2021/08/13 17:48:27 tg Exp $");
 
 static FILE *sfp;			/* scratch file pointer */
 static tp_ftell sfpos;			/* scratch file position */

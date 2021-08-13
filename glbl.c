@@ -32,7 +32,6 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 
-#include <regex.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,7 +39,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.9 2020/10/27 06:26:00 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/glbl.c,v 1.10 2021/08/13 17:48:27 tg Exp $");
 
 static int set_active_node(line_t *);
 static line_t *next_active_node(void);

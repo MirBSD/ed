@@ -30,7 +30,6 @@
  */
 
 #include <limits.h>
-#include <regex.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,7 +37,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/sub.c,v 1.4 2020/10/27 08:21:06 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/sub.c,v 1.5 2021/08/13 17:48:28 tg Exp $");
 
 static char *extract_subst_template(void);
 static int substitute_matching_text(regex_t *, line_t *, int, int);

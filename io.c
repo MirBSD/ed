@@ -28,7 +28,6 @@
  * SUCH DAMAGE.
  */
 
-#include <regex.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +35,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/io.c,v 1.12 2020/10/27 06:11:29 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.13 2021/08/13 17:48:27 tg Exp $");
 
 static int read_stream(FILE *, int);
 static ssize_t get_stream_line(FILE *);

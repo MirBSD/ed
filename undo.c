@@ -28,12 +28,13 @@
  * SUCH DAMAGE.
  */
 
-#include <regex.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "ed.h"
+
+__RCSID("$MirOS: src/bin/ed/undo.c,v 1.2 2021/08/13 17:48:28 tg Exp $");
 
 #define USIZE 100				/* undo stack size */
 static undo_t *ustack = NULL;			/* undo stack */

@@ -29,7 +29,6 @@
  * SUCH DAMAGE.
  */
 
-#include <regex.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +36,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/re.c,v 1.4 2020/10/27 06:26:01 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/re.c,v 1.5 2021/08/13 17:48:28 tg Exp $");
 
 static char *extract_pattern(int);
 static char *parse_char_class(char *);

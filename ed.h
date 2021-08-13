@@ -1,10 +1,10 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.19 2020/10/27 07:01:26 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.20 2021/08/13 17:48:27 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.22 2016/03/27 00:43:38 mmcc Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
-/* ed.h: type and constant definitions for the ed editor. */
+/* ed.h: type and constant definitions for the standard editor */
 /*
- * Copyright (c) 2013, 2016, 2020
+ * Copyright (c) 2013, 2016, 2020, 2021
  *	mirabilos <m@mirbsd.org>
  * Copyright (c) 1993 Andrew Moore
  * All rights reserved.
