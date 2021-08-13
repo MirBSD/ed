@@ -1,4 +1,4 @@
-#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.21 2021/08/13 21:58:40 tg Exp $"
+#define ED_H_ID "$MirOS: src/bin/ed/ed.h,v 1.22 2021/08/13 22:41:24 tg Exp $"
 /*	$OpenBSD: ed.h,v 1.22 2016/03/27 00:43:38 mmcc Exp $	*/
 /*	$NetBSD: ed.h,v 1.23 1995/03/21 09:04:40 cgd Exp $	*/
 
@@ -33,10 +33,61 @@
  *	@(#)ed.h,v 1.5 1994/02/01 00:34:39 alm Exp
  */
 
+#ifdef __MirBSD__
+#include <sys/param.h> /* for MirBSD */
+#endif
 #include <errno.h>
 #include <limits.h>
 #include <regex.h>
 #include <signal.h>
+
+#ifndef HAVE_ATTRIBUTE_USED
+#define HAVE_ATTRIBUTE_USED	1
+#endif
+
+#if HAVE_ATTRIBUTE_USED
+#define MKSH_A_USED		__attribute__((__used__))
+#else
+#define MKSH_A_USED		/* nothing */
+#endif
+
+#if defined(MirBSD) && (MirBSD >= 0x09A1) && \
+    defined(__ELF__) && defined(__GNUC__) && \
+    !defined(__llvm__) && !defined(__NWCC__)
+/*
+ * We got usable __IDSTRING __COPYRIGHT __RCSID __SCCSID macros
+ * which work for all cases; no need to redefine them using the
+ * "portable" macros from below when we might have the "better"
+ * gcc+ELF specific macros or other system dependent ones.
+ */
+#else
+#undef __IDSTRING
+#undef __IDSTRING_CONCAT
+#undef __IDSTRING_EXPAND
+#undef __COPYRIGHT
+#undef __RCSID
+#undef __SCCSID
+#define __IDSTRING_CONCAT(l,p)		__LINTED__ ## l ## _ ## p
+#define __IDSTRING_EXPAND(l,p)		__IDSTRING_CONCAT(l,p)
+#ifdef MKSH_DONT_EMIT_IDSTRING
+#define __IDSTRING(prefix,string)	/* nothing */
+#elif defined(__ELF__) && defined(__GNUC__) && \
+    !(defined(__GNUC__) && defined(__mips16) && (__GNUC__ >= 8)) && \
+    !defined(__llvm__) && !defined(__NWCC__) && !defined(NO_ASM)
+#define __IDSTRING(prefix,string)				\
+	__asm__(".section .comment"				\
+	"\n	.ascii	\"@(\"\"#)" #prefix ": \""		\
+	"\n	.asciz	\"" string "\""				\
+	"\n	.previous")
+#else
+#define __IDSTRING(prefix,string)				\
+	static const char __IDSTRING_EXPAND(__LINE__,prefix) []	\
+	    MKSH_A_USED = "@(""#)" #prefix ": " string
+#endif
+#define __COPYRIGHT(x)		__IDSTRING(copyright,x)
+#define __RCSID(x)		__IDSTRING(rcsid,x)
+#define __SCCSID(x)		__IDSTRING(sccsid,x)
+#endif
 
 #define edbool unsigned char
 
