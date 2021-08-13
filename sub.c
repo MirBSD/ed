@@ -37,7 +37,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/sub.c,v 1.7 2021/08/13 22:09:53 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/sub.c,v 1.8 2021/08/13 22:14:21 tg Exp $");
 
 static char *extract_subst_template(void);
 static int substitute_matching_text(regex_t *, line_t *, int, int);
@@ -204,7 +204,8 @@ substitute_matching_text(regex_t *pat, line_t *lp, int gflag, int kth)
 			if (!kth || kth == ++matchno) {
 				changed = 1;
 				i = rm[0].rm_so - (eom - txt);
-				REALLOC(rbuf, rbufsz, (size_t)off + (size_t)i, ERR);
+				REALLOC(rbuf, rbufsz,
+				    (size_t)off + 0U + (size_t)i, ERR);
 				if (isbinary)
 					NEWLINE_TO_NUL(eom,
 					    rm[0].rm_eo - (eom - txt));
@@ -226,7 +227,7 @@ substitute_matching_text(regex_t *pat, line_t *lp, int gflag, int kth)
 		    (gflag & GSG || kth) &&
 		    !regexec(pat, txt, SE_MAX, rm, REG_STARTEND | REG_NOTBOL));
 		i = eot - eom;
-		REALLOC(rbuf, rbufsz, (size_t)off + (size_t)i + 2U, ERR);
+		REALLOC(rbuf, rbufsz, (size_t)off + 0U + (size_t)i + 2U, ERR);
 		if (isbinary)
 			NEWLINE_TO_NUL(eom, i);
 		memcpy(rbuf + off, eom, i);
@@ -250,7 +251,7 @@ apply_subst_template(char *boln, regmatch_t *rm, int off, int re_nsub)
 		if (*sub == '&') {
 			j = rm[0].rm_so;
 			k = rm[0].rm_eo;
-			REALLOC(rbuf, rbufsz, (size_t)off +
+			REALLOC(rbuf, rbufsz, (size_t)off + 0U +
 			    (size_t)k - (size_t)j + /* NUL */ 1U, ERR);
 			while (j < k)
 				rbuf[off++] = boln[j++];
@@ -258,12 +259,12 @@ apply_subst_template(char *boln, regmatch_t *rm, int off, int re_nsub)
 		    (n = *sub - '0') <= re_nsub) {
 			j = rm[n].rm_so;
 			k = rm[n].rm_eo;
-			REALLOC(rbuf, rbufsz, (size_t)off +
+			REALLOC(rbuf, rbufsz, (size_t)off + 0U +
 			    (size_t)k - (size_t)j + /* NUL */ 1U, ERR);
 			while (j < k)
 				rbuf[off++] = boln[j++];
 		} else {
-			REALLOC(rbuf, rbufsz, (size_t)off +
+			REALLOC(rbuf, rbufsz, (size_t)off + 0U +
 			    1U + /* NUL */ 1U, ERR);
 			rbuf[off++] = *sub;
 		}

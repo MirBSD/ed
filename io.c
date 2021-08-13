@@ -35,7 +35,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/io.c,v 1.15 2021/08/13 22:09:52 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.16 2021/08/13 22:14:21 tg Exp $");
 
 static int read_stream(FILE *, int);
 static ssize_t get_stream_line(FILE *);
@@ -238,7 +238,7 @@ get_extended_line(ssize_t *sizep, int nonl)
 			seterrmsg("unexpected end-of-file");
 			return NULL;
 		}
-		REALLOC(cvbuf, cvbufsz, (size_t)l + (size_t)n + 1U, NULL);
+		REALLOC(cvbuf, cvbufsz, (size_t)l + 0U + (size_t)n + 1U, NULL);
 		memcpy(cvbuf + l, ibuf, n);
 		l += n;
 		if (n < 2 || !has_trailing_escape(cvbuf, cvbuf + l - 1))

@@ -64,7 +64,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.29 2021/08/13 22:09:53 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.30 2021/08/13 22:14:21 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -1019,7 +1019,7 @@ get_shell_command(void)
 				seterrmsg("no previous command");
 				return ERR;
 			} else {
-				REALLOC(buf, n, (size_t)i + shcmdi, ERR);
+				REALLOC(buf, n, (size_t)i + 0U + shcmdi, ERR);
 				for (s = shcmd + 1; s < shcmd + shcmdi;)
 					buf[i++] = *s++;
 				s = ibufp++;
@@ -1031,7 +1031,7 @@ get_shell_command(void)
 				return ERR;
 			}
 			j = strlen(s = strip_escapes(old_filename));
-			REALLOC(buf, n, (size_t)i + (size_t)j, ERR);
+			REALLOC(buf, n, (size_t)i + 0U + (size_t)j, ERR);
 			while (j--)
 				buf[i++] = *s++;
 			s = ibufp++;
@@ -1114,7 +1114,7 @@ join_lines(int from, int to)
 	for (; bp != ep; bp = bp->q_forw) {
 		if ((s = get_sbuf_line(bp)) == NULL)
 			return ERR;
-		REALLOC(buf, n, size + bp->llen + /* \n\0 */ 2U, ERR);
+		REALLOC(buf, n, size + 0U + bp->llen + /* \n\0 */ 2U, ERR);
 		memcpy(buf + size, s, bp->llen);
 		size += bp->llen;
 	}
