@@ -37,7 +37,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/sub.c,v 1.6 2021/08/13 21:58:41 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/sub.c,v 1.7 2021/08/13 22:09:53 tg Exp $");
 
 static char *extract_subst_template(void);
 static int substitute_matching_text(regex_t *, line_t *, int, int);
@@ -250,21 +250,23 @@ apply_subst_template(char *boln, regmatch_t *rm, int off, int re_nsub)
 		if (*sub == '&') {
 			j = rm[0].rm_so;
 			k = rm[0].rm_eo;
-			REALLOC(rbuf, rbufsz, (size_t)off + (size_t)k - (size_t)j, ERR);
+			REALLOC(rbuf, rbufsz, (size_t)off +
+			    (size_t)k - (size_t)j + /* NUL */ 1U, ERR);
 			while (j < k)
 				rbuf[off++] = boln[j++];
 		} else if (*sub == '\\' && '1' <= *++sub && *sub <= '9' &&
 		    (n = *sub - '0') <= re_nsub) {
 			j = rm[n].rm_so;
 			k = rm[n].rm_eo;
-			REALLOC(rbuf, rbufsz, (size_t)off + (size_t)k - (size_t)j, ERR);
+			REALLOC(rbuf, rbufsz, (size_t)off +
+			    (size_t)k - (size_t)j + /* NUL */ 1U, ERR);
 			while (j < k)
 				rbuf[off++] = boln[j++];
 		} else {
-			REALLOC(rbuf, rbufsz, (size_t)off + 1U, ERR);
+			REALLOC(rbuf, rbufsz, (size_t)off +
+			    1U + /* NUL */ 1U, ERR);
 			rbuf[off++] = *sub;
 		}
-	REALLOC(rbuf, rbufsz, (size_t)off + 1U, ERR);
 	rbuf[off] = '\0';
 	return off;
 }

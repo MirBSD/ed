@@ -35,7 +35,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/io.c,v 1.14 2021/08/13 21:58:40 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/io.c,v 1.15 2021/08/13 22:09:52 tg Exp $");
 
 static int read_stream(FILE *, int);
 static ssize_t get_stream_line(FILE *);
@@ -124,13 +124,13 @@ get_stream_line(FILE *fp)
 	int c;
 	size_t i = 0;
 
+	REALLOC(sbuf, sbufsz, /* below the loop */ 2U, ERR);
 	while (((c = getc(fp)) != EOF || (!feof(fp) &&
 	    !ferror(fp))) && c != '\n') {
-		REALLOC(sbuf, sbufsz, i + 1U, ERR);
+		REALLOC(sbuf, sbufsz, i + 1U + /* below the loop */ 2U, ERR);
 		if (!(sbuf[i++] = c))
 			isbinary = 1;
 	}
-	REALLOC(sbuf, sbufsz, i + 2U, ERR);
 	if (c == '\n')
 		sbuf[i++] = c;
 	else if (ferror(fp)) {
@@ -226,7 +226,7 @@ get_extended_line(ssize_t *sizep, int nonl)
 		return ibufp;
 	}
 	*sizep = -1;
-	REALLOC(cvbuf, cvbufsz, (size_t)l, NULL);
+	REALLOC(cvbuf, cvbufsz, (size_t)l + 1U, NULL);
 	memcpy(cvbuf, ibufp, l);
 	*(cvbuf + --l - 1) = '\n'; 	/* strip trailing esc */
 	if (nonl)
@@ -238,7 +238,7 @@ get_extended_line(ssize_t *sizep, int nonl)
 			seterrmsg("unexpected end-of-file");
 			return NULL;
 		}
-		REALLOC(cvbuf, cvbufsz, (size_t)l + (size_t)n, NULL);
+		REALLOC(cvbuf, cvbufsz, (size_t)l + (size_t)n + 1U, NULL);
 		memcpy(cvbuf + l, ibuf, n);
 		l += n;
 		if (n < 2 || !has_trailing_escape(cvbuf, cvbuf + l - 1))
@@ -246,7 +246,6 @@ get_extended_line(ssize_t *sizep, int nonl)
 		*(cvbuf + --l - 1) = '\n'; 	/* strip trailing esc */
 		if (nonl) l--; 			/* strip newline */
 	}
-	REALLOC(cvbuf, cvbufsz, (size_t)l + 1U, NULL);
 	cvbuf[l] = '\0';
 	*sizep = l;
 	return cvbuf;

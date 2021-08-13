@@ -64,7 +64,7 @@
 
 #include "ed.h"
 
-__RCSID("$MirOS: src/bin/ed/main.c,v 1.28 2021/08/13 21:58:40 tg Exp $");
+__RCSID("$MirOS: src/bin/ed/main.c,v 1.29 2021/08/13 22:09:53 tg Exp $");
 __IDSTRING(ed_h, ED_H_ID);
 
 void signal_hup(int);
@@ -1114,11 +1114,10 @@ join_lines(int from, int to)
 	for (; bp != ep; bp = bp->q_forw) {
 		if ((s = get_sbuf_line(bp)) == NULL)
 			return ERR;
-		REALLOC(buf, n, size + bp->llen, ERR);
+		REALLOC(buf, n, size + bp->llen + /* \n\0 */ 2U, ERR);
 		memcpy(buf + size, s, bp->llen);
 		size += bp->llen;
 	}
-	REALLOC(buf, n, size + 2U, ERR);
 	memcpy(buf + size, "\n", 2);
 	if (delete_lines(from, to) < 0)
 		return ERR;
