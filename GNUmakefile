@@ -1,4 +1,4 @@
-# $MirOS: src/bin/ed/GNUmakefile,v 1.14 2021/08/13 22:43:04 tg Exp $
+# $MirOS: src/bin/ed/GNUmakefile,v 1.15 2021/08/13 22:51:44 tg Exp $
 #-
 # Makefile for GNU make, possibly nmake
 # Add strlcpy(3), strlcat(3) and reallocarray(3) to the link either
@@ -19,6 +19,7 @@ DEFS1=		-D_GNU_SOURCE
 #DEFS4=		-DNO_FSEEKO
 DEFS=		$(DEFS0) $(DEFS1) $(DEFS2) $(DEFS3) $(DEFS4)
 STFN=		$(DEFS0) -DNEED_STRLFUN_PROTOS
+SHELL=		/bin/sh
 
 all: $(PROG)
 
@@ -37,4 +38,8 @@ strlcpy.o: strlfun.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(DEFS) -c $<
 
 clean:
+	cd test && $(MAKE) clean
 	rm -f strlcpy.c strlcat.c $(OBJS) $(PROG)
+
+check:
+	cd test && $(MAKE) clean && SHELL='$(SHELL)' $(MAKE) ED=../ed && $(MAKE) clean
