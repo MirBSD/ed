@@ -1,4 +1,5 @@
-.\"	$OpenBSD: e7,v 1.4 2004/04/05 10:58:08 jmc Exp $
+.\" $MirOS: src/bin/ed/USD.doc/09.edtut/e7,v 1.2 2022/12/02 17:43:33 tg Exp $
+.\" $OpenBSD: e7,v 1.4 2004/04/05 10:58:08 jmc Exp $
 .\"
 .\" Copyright (C) Caldera International Inc.  2001-2002.
 .\" All rights reserved.
@@ -225,3 +226,14 @@ at
 scan to 1,
 wrap around to
 .UL $ .
+.SH
+References
+.nr PI 5n
+.IP [1]
+Brian W. Kernighan,
+.UL "Advanced Editing on UNIX" ,
+the 10.edadv(USD) paper.
+.IP " *"
+The ed(1) manual page.
+.IP " *"
+The re_format(7) manual page.
